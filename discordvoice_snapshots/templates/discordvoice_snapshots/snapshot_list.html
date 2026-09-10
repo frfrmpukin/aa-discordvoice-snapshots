@@ -1,1 +1,36 @@
+{% extends "allianceauth/base.html" %}
+{% block title %}Discord Voice Snapshots{% endblock %}
 
+{% block content %}
+<div class="container mt-4">
+    <h2>Discord Voice Snapshots</h2>
+    <hr>
+
+    {% if snapshots %}
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th>Channel</th>
+                    <th>Timestamp</th>
+                    <th>View</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for snap in snapshots %}
+                <tr>
+                    <td>{{ snap.channel.name }}</td>
+                    <td>{{ snap.timestamp }}</td>
+                    <td>
+                        <a href="{% url 'discordvoice_snapshots:detail' snap.id %}" class="btn btn-primary btn-sm">
+                            Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No snapshots recorded yet.</p>
+    {% endif %}
+</div>
+{% endblock %}
