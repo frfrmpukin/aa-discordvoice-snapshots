@@ -1,1 +1,25 @@
+{% extends "allianceauth/base.html" %}
+{% block title %}Snapshot Details{% endblock %}
 
+{% block content %}
+<div class="container mt-4">
+    <h2>Snapshot Details</h2>
+    <hr>
+
+    <p><strong>Channel:</strong> {{ snapshot.channel.name }}</p>
+    <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
+
+    <h4 class="mt-4">Users Present</h4>
+    <ul class="list-group">
+        {% for entry in users %}
+            <li class="list-group-item">
+                {{ entry.user.username }}
+            </li>
+        {% empty %}
+            <li class="list-group-item">No users recorded in this snapshot.</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary mt-3">Back</a>
+</div>
+{% endblock %}
