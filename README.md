@@ -4,7 +4,7 @@ A system to store channel snapshots, track which users appeared in each snapshot
 
 ### Installation
 ```
-pip install git+https://github.com/YOURNAME/aa-discordvoice-snapshots
+pip install git+https://github.com/frfrmpukin/aa-discordvoice-snapshots
 ```
 ### Edit local.py
 ```
