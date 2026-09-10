@@ -1,1 +1,2 @@
-
+recursive-include discordvoice_snapshots/templates *
+recursive-include discordvoice_snapshots/static *
