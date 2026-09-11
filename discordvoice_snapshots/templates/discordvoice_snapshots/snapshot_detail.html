@@ -1,33 +1,29 @@
-{% extends "allianceauth/base.html" %}
-{% block title %}Snapshot Details{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
-    <h2>Snapshot Details</h2>
-    <hr>
+<h2>Snapshot Detail</h2>
+<p><strong>Channel:</strong> {{ snapshot.channel_name }}</p>
+<p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
+<p><strong>Tag:</strong> {{ snapshot.tag.name|default:"None" }}</p>
 
-    <p><strong>Channel:</strong> {{ snapshot.channel.name }}</p>
-    <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
+<h4>Users</h4>
+<ul>
+  {% for su in users %}
+    <li>
+      {% if su.user %}
+        {{ su.user.username }}
+      {% else %}
+        {{ su.discord_username|default:su.discord_user_id }}
+      {% endif %}
+    </li>
+  {% empty %}
+    <li>No users recorded</li>
+  {% endfor %}
+</ul>
 
-    <h4 class="mt-4">Users Present</h4>
-    <ul class="list-group">
-        {% for entry in users %}
-            <li class="list-group-item">
-                {{ entry.user.username }}
-            </li>
-        {% empty %}
-            <li class="list-group-item">No users recorded in this snapshot.</li>
-        {% endfor %}
-    </ul>
-
-    <div class="mt-4">
-        <a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-warning">
-            Edit Snapshot
-        </a>
-
-        <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary ms-2">
-            Back to List
-        </a>
-    </div>
-</div>
+<a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-primary">Edit</a>
+<form method="post" action="{% url 'discordvoice_snapshots:delete' snapshot.id %}" style="display:inline;">
+  {% csrf_token %}
+  <button class="btn btn-danger">Delete</button>
+</form>
+<a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary">Back</a>
 {% endblock %}
