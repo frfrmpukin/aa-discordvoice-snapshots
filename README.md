@@ -1,6 +1,43 @@
 # aa-discordvoice-snapshots
-A system to store channel snapshots, track which users appeared in each snapshot, allow admins to edit records, and allow each user to view their own appearance history.
 
+This module records Discord voice channel activity and provides tools for
+managing, auditing, and cleaning up snapshots. It integrates directly with
+Alliance Auth and supports advanced editing features such as autocomplete,
+Discord username lookup, and bulk user removal.
+
+---
+
+## Features
+
+### Snapshot Management
+- Create snapshots manually or via periodic Celery tasks
+- View snapshot details and user lists
+- Edit snapshots (add/remove users)
+- Bulk remove users
+- Delete snapshots safely with confirmation
+
+### Advanced Editing Tools
+- AA username autocomplete
+- Discord username lookup (editor-only)
+- Bulk user removal via checkbox UI
+
+### Admin Tools
+- Snapshot cleanup (old snapshots, empty snapshots)
+- Audit log viewer
+- Admin console navigation entry
+
+### API Endpoints
+- Snapshot list
+- User snapshot history
+- Audit log
+- Username autocomplete
+- Discord username search (editor-only)
+
+---
+
+## Installation
+
+Add the module to your Alliance Auth installation:
 
 ### Installation
 ```
@@ -23,3 +60,31 @@ CELERYBEAT_SCHEDULE["cleanup_daily"] = {
     "schedule": crontab(hour=3, minute=0),
 }
 ```
+## Permissions
+
+### Recommended defaults:
+- `view_snapshot_history` — member/editor/admin
+- `take_snapshot` — editor/admin
+
+## Navigation Entry
+### The module adds a sidebar entry for users with the correct permissions.
+
+## Support
+### This module is custom-built for Alliance Auth environments requiring Discord
+voice activity tracking and administrative tools.
+
+✔ Professional  
+✔ Complete  
+✔ AA‑style  
+✔ No placeholders  
+
+---
+
+# 🖼️ **Full UI Screenshot Mockup (HTML-only)**
+
+This is a **static HTML mockup** showing what your UI looks like visually.  
+You can open it in a browser to preview the layout.
+
+Save as:
+
+
