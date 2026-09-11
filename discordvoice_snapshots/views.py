@@ -222,6 +222,19 @@ def admin_console(request):
     )
 
 
+@viewer_required
+def snapshot_detail(request, snapshot_id):
+    snapshot = get_object_or_404(Snapshot, id=snapshot_id)
+    users = SnapshotUser.objects.filter(snapshot=snapshot)
+
+    return render(
+        request,
+        "discordvoice_snapshots/snapshot_detail.html",
+        {"snapshot": snapshot, "users": users}
+    )
+
+
+
 @admin_required
 def audit_log_view(request):
     logs = AuditLog.objects.select_related("user").order_by("-timestamp")
