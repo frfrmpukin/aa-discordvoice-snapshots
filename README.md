@@ -39,7 +39,7 @@ Discord username lookup, and bulk user removal.
 
 Add the module to your Alliance Auth installation:
 
-### Installation
+### Github link
 ```
 pip install git+https://github.com/frfrmpukin/aa-discordvoice-snapshots
 ```
@@ -72,14 +72,66 @@ python /home/allianceserver/myauth/manage.py collectstatic --noinput
 ```
 supervisorctl restart myauth:
 ```
-## Permissions
 
-### Recommended defaults:
-- `view_snapshot_history` — member/editor/admin
-- `take_snapshot` — editor/admin
+---
+
+## Permissions & Roles
+This module uses Alliance Auth’s group‑based permission system (AA 5.x).
+Access is controlled through the following recommended groups:
+
+### Viewer
+Can:
+- `View snapshots`
+- `View user snapshot history`
+Requires Django permissions:
+- `discordvoice_snapshots.view_snapshot`
+- `discordvoice_snapshots.view_snapshotuser`
+
+### Editor
+Can:
+- `Take snapshots`
+- `Add/remove users from snapshots`
+- `Bulk remove users`
+- `Edit tags`
+Requires Django permissions:
+- `All Viewer permissions`
+- `discordvoice_snapshots.add_snapshotuser`
+- `discordvoice_snapshots.change_snapshotuser`
+- `discordvoice_snapshots.delete_snapshotuser`
+- `discordvoice_snapshots.change_snapshot`
+
+### Admin
+Can:
+- `All Editor actions`
+- `Delete snapshots`
+- `View audit logs`
+- `Access admin console`
+Requires Django permissions:
+- `All Editor permissions`
+- `discordvoice_snapshots.add_snapshot`
+- `discordvoice_snapshots.change_snapshot`
+- `discordvoice_snapshots.delete_snapshot`
+- `discordvoice_snapshots.view_auditlog`
+
+### SuperAdmin
+Alliance Auth superusers automatically bypass all permission checks.
+
+### Automatic Group Setup
+A management command is included:
+```
+python manage.py create_snapshot_groups
+```
+This command will:
+- Detect existing AA groups (`Viewer`, `Editor`, `Admin`, `SuperAdmin`)
+- Assign the correct permissions
+- Create missing groups if needed (optional `--force-create`)
+  
+---
 
 ## Navigation Entry
-### The module adds a sidebar entry for users with the correct permissions.
+The module adds a sidebar entry for users with the correct permissions.
+
+---
 
 ## Support
 ### This module is custom-built for Alliance Auth environments requiring Discord
@@ -92,7 +144,7 @@ voice activity tracking and administrative tools.
 
 ---
 
-# 🖼️ **Full UI Screenshot Mockup (HTML-only)**
+## 🖼️ **Full UI Screenshot Mockup (HTML-only)**
 
 This is a **static HTML mockup** showing what the UI looks like visually.  
 You can open it in a browser via the docs folder to preview the layout.
