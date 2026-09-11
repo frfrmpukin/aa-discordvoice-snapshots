@@ -48,7 +48,7 @@ def snapshot_edit(request, snapshot_id):
     if request.method == "POST":
         action = request.POST.get("action")
 
-        # Add user
+        # Add AA user (autocomplete-backed)
         if action == "add_user":
             username = request.POST.get("username")
             try:
@@ -65,7 +65,26 @@ def snapshot_edit(request, snapshot_id):
             except User.DoesNotExist:
                 messages.error(request, "User not found.")
 
-        # Remove user
+        # Add via Discord username
+        elif action == "add_discord_user":
+            from allianceauth.services.modules.discord.models import DiscordUser
+
+            discord_name = request.POST.get("discord_username")
+            du = DiscordUser.objects.filter(username=discord_name).select_related("user").first()
+            if du and du.user:
+                SnapshotUser.objects.get_or_create(snapshot=snapshot, user=du.user)
+
+                log_action(
+                    user=request.user,
+                    action=f"Added Discord user {discord_name} (AA: {du.user.username}) to snapshot {snapshot_id}",
+                    old_value=None,
+                    new_value=du.user.username
+                )
+                messages.success(request, f"Discord user {discord_name} added as {du.user.username}.")
+            else:
+                messages.error(request, "Discord user not found or not linked to an AA user.")
+
+        # Remove single user
         elif action == "remove_user":
             user_id = request.POST.get("user_id")
             SnapshotUser.objects.filter(snapshot=snapshot, user_id=user_id).delete()
@@ -77,6 +96,21 @@ def snapshot_edit(request, snapshot_id):
                 new_value=None
             )
             messages.success(request, "User removed.")
+
+        # Bulk remove users (checkboxes)
+        elif action == "bulk_remove":
+            ids = request.POST.getlist("bulk_user_ids")
+            removed = 0
+            for uid in ids:
+                removed += SnapshotUser.objects.filter(snapshot=snapshot, user_id=uid).delete()[0]
+
+            log_action(
+                user=request.user,
+                action=f"Bulk removed {removed} users from snapshot {snapshot_id}",
+                old_value=str(ids),
+                new_value=None
+            )
+            messages.success(request, f"Bulk removed {removed} users.")
 
         # Delete snapshot
         elif action == "delete_snapshot":
@@ -155,9 +189,6 @@ def audit_log_view(request):
 
 @admin_required
 def cleanup_tools(request):
-    """
-    Admin cleanup UI
-    """
     result = None
 
     if request.method == "POST":
