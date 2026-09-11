@@ -48,7 +48,7 @@ def snapshot_edit(request, snapshot_id):
     if request.method == "POST":
         action = request.POST.get("action")
 
-        # Add AA user (autocomplete-backed)
+        # Add AA user (autocomplete)
         if action == "add_user":
             username = request.POST.get("username")
             try:
@@ -97,7 +97,7 @@ def snapshot_edit(request, snapshot_id):
             )
             messages.success(request, "User removed.")
 
-        # Bulk remove users (checkboxes)
+        # Bulk remove users
         elif action == "bulk_remove":
             ids = request.POST.getlist("bulk_user_ids")
             removed = 0
