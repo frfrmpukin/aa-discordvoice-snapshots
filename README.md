@@ -60,6 +60,18 @@ CELERYBEAT_SCHEDULE["cleanup_daily"] = {
     "schedule": crontab(hour=3, minute=0),
 }
 ```
+### Migrate to add database tables
+```
+python /home/allianceserver/myauth/manage.py migrate
+```
+### Collect Static Files
+```
+python /home/allianceserver/myauth/manage.py collectstatic --noinput
+```
+### Reboot the project
+```
+supervisorctl restart myauth:
+```
 ## Permissions
 
 ### Recommended defaults:
