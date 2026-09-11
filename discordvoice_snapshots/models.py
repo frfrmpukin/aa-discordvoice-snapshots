@@ -18,6 +18,17 @@ class Snapshot(models.Model):
     def __str__(self):
         return f"{self.channel.name} @ {self.timestamp}"
 
+class Snapshot(models.Model):
+    channel_name = models.CharField(max_length=200)
+    timestamp = models.DateTimeField()
+    tag = models.ForeignKey(
+        "SnapshotTag",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="snapshots"
+    )
+
 
 class SnapshotUser(models.Model):
     snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE)
