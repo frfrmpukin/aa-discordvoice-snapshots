@@ -6,6 +6,8 @@ urlpatterns = [
     path("user/<int:user_id>/", views.user_dashboard, name="user_dashboard"),
     path("admin/", views.admin_console, name="admin_console"),
     path("admin/audit/", views.audit_log_view, name="audit_log"),
+    path("admin/cleanup/", views.cleanup_tools, name="cleanup_tools"),
+
 
     # API
     path("api/", api.api_snapshots, name="api_snapshots"),
