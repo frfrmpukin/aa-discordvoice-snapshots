@@ -1,0 +1,36 @@
+{% extends "allianceauth/base.html" %}
+{% block title %}Snapshot Cleanup{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Snapshot Cleanup Tools</h2>
+    <hr>
+
+    <h4>Delete Old Snapshots</h4>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="cleanup_old">
+        <div class="input-group">
+            <input type="number" name="days" class="form-control" value="30" min="1">
+            <button class="btn btn-danger">Delete Older Than X Days</button>
+        </div>
+    </form>
+
+    <h4>Delete Empty Snapshots</h4>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="cleanup_empty">
+        <button class="btn btn-warning">Delete Snapshots With No Users</button>
+    </form>
+
+    {% if result is not None %}
+        <div class="alert alert-info">
+            Cleanup completed. Deleted {{ result }} snapshots.
+        </div>
+    {% endif %}
+
+    <a href="{% url 'discordvoice_snapshots:admin_console' %}" class="btn btn-secondary mt-3">
+        Back to Admin Console
+    </a>
+</div>
+{% endblock %}
