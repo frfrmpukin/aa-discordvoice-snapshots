@@ -20,6 +20,14 @@
         {% endfor %}
     </ul>
 
-    <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary mt-3">Back</a>
+    <div class="mt-4">
+        <a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-warning">
+            Edit Snapshot
+        </a>
+
+        <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary ms-2">
+            Back to List
+        </a>
+    </div>
 </div>
 {% endblock %}
