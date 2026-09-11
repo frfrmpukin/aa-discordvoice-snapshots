@@ -33,3 +33,11 @@ class AuditLog(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     old_value = models.TextField(null=True, blank=True)
     new_value = models.TextField(null=True, blank=True)
+
+
+class SnapshotTag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name
+
