@@ -164,6 +164,32 @@ def user_dashboard(request, user_id):
         {"snapshots": snapshots}
     )
 
+@editor_required
+def take_snapshot(request):
+    if request.method == "POST":
+        tag_id = request.POST.get("tag")
+        tag = SnapshotTag.objects.filter(id=tag_id).first()
+
+        api = DiscordApi()
+        guild_id = settings.DISCORD_GUILD_ID
+        voice_states = api.get_guild_voice_states(guild_id)
+
+        snapshot = Snapshot.objects.create(
+            channel_name="Voice Channels",
+            timestamp=timezone.now(),
+            tag=tag
+        )
+
+        for state in voice_states:
+            SnapshotUser.objects.get_or_create(
+                snapshot=snapshot,
+                user_id=state["user_id"]
+            )
+
+        return redirect("discordvoice_snapshots:snapshot_detail", snapshot.id)
+
+    tags = SnapshotTag.objects.all()
+    return render(request, "discordvoice_snapshots/take_snapshot.html", {"tags": tags})
 
 @admin_required
 def admin_console(request):
