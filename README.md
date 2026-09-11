@@ -85,4 +85,4 @@ voice activity tracking and administrative tools.
 This is a **static HTML mockup** showing what the UI looks like visually.  
 You can open it in a browser via the docs folder to preview the layout.
 
-![ui_mockup.html](docs/ui.png)(docs/ui_mockup.html)
+[![ui_mockup.html](docs/ui.png)](docs/ui_mockup.html)
