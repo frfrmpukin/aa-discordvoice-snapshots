@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 
 from allianceauth.services.modules.discord.models import DiscordUser
 from .models import Snapshot, SnapshotUser, AuditLog
+from .permissions import editor_required
 
 User = get_user_model()
 
@@ -72,11 +73,13 @@ def api_user_search(request):
     return JsonResponse({"results": data})
 
 
+@editor_required
 @require_GET
 def api_discord_user_search(request):
     """
     Discord username search.
     ?q=<partial>
+    Only editors/admins may use this.
     """
     q = request.GET.get("q", "").strip()
     if not q:
