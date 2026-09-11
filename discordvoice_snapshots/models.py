@@ -21,6 +21,13 @@ class SnapshotTag(models.Model):
 
 class Snapshot(models.Model):
     channel_name = models.CharField(max_length=200)
+    channel = models.ForeignKey(
+        Channel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="snapshots"
+    )
     timestamp = models.DateTimeField(auto_now_add=True)
     tag = models.ForeignKey(
         SnapshotTag,
@@ -36,14 +43,17 @@ class Snapshot(models.Model):
 
 class SnapshotUser(models.Model):
     snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name="snapshot_users")
-    # AA user if linked; nullable so we can record Discord-only entries
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    # store discord id for unlinked users or for reference
     discord_user_id = models.CharField(max_length=64, null=True, blank=True)
     discord_username = models.CharField(max_length=200, null=True, blank=True)
 
     class Meta:
         unique_together = ("snapshot", "user", "discord_user_id")
+
+    def __str__(self):
+        if self.user:
+            return f"{self.user.username} in {self.snapshot}"
+        return f"{self.discord_username or self.discord_user_id} in {self.snapshot}"
 
 
 class AuditLog(models.Model):
