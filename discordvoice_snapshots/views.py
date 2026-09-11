@@ -164,6 +164,7 @@ def user_dashboard(request, user_id):
         {"snapshots": snapshots}
     )
 
+
 @editor_required
 def take_snapshot(request):
     if request.method == "POST":
@@ -190,6 +191,24 @@ def take_snapshot(request):
 
     tags = SnapshotTag.objects.all()
     return render(request, "discordvoice_snapshots/take_snapshot.html", {"tags": tags})
+
+@editor_required
+def edit_snapshot(request, snapshot_id):
+    snapshot = get_object_or_404(Snapshot, id=snapshot_id)
+
+    if request.method == "POST":
+        tag_id = request.POST.get("tag")
+        snapshot.tag = SnapshotTag.objects.filter(id=tag_id).first()
+        snapshot.save()
+        return redirect("discordvoice_snapshots:snapshot_detail", snapshot.id)
+
+    tags = SnapshotTag.objects.all()
+    return render(
+        request,
+        "discordvoice_snapshots/edit_snapshot.html",
+        {"snapshot": snapshot, "tags": tags}
+    )
+
 
 @admin_required
 def admin_console(request):
