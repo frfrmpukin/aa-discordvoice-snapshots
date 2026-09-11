@@ -1,2 +1,7 @@
-recursive-include discordvoice_snapshots/templates *
-recursive-include discordvoice_snapshots/static *
+include README.md
+include LICENSE
+
+recursive-include aa_discord_voicesnapshot/templates *
+recursive-include aa_discord_voicesnapshot/static *
+recursive-include aa_discord_voicesnapshot/migrations *
+recursive-include aa_discord_voicesnapshot *.py
