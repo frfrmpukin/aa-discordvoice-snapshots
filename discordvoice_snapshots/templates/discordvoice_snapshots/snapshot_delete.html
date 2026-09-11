@@ -1,26 +1,11 @@
-{% extends "allianceauth/base.html" %}
-{% block title %}Delete Snapshot{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-danger">Delete Snapshot</h2>
-    <hr>
-
-    <p><strong>Channel:</strong> {{ snapshot.channel.name }}</p>
-    <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
-
-    <div class="alert alert-danger mt-4">
-        <strong>Warning:</strong> This action is permanent and cannot be undone.
-        Deleting this snapshot will remove all associated user records.
-    </div>
-
-    <form method="post" class="mt-3">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="delete_snapshot">
-        <button class="btn btn-danger">Yes, Delete Snapshot</button>
-        <a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-secondary ms-2">
-            Cancel
-        </a>
-    </form>
-</div>
+<h2>Delete Snapshot</h2>
+<p>Are you sure you want to delete snapshot {{ snapshot }}?</p>
+<form method="post">
+  {% csrf_token %}
+  <button class="btn btn-danger">Yes, delete</button>
+  <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
+</form>
 {% endblock %}
+
