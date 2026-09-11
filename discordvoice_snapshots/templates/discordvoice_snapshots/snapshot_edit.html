@@ -70,5 +70,11 @@
     </a>
 </div>
 
+<script>
+    window.snapshotEditUserSearchUrl = "{% url 'discordvoice_snapshots:api_user_search' %}";
+    window.snapshotEditDiscordSearchUrl = "{% url 'discordvoice_snapshots:api_discord_user_search' %}";
+</script>
+<script src="{% static 'discordvoice_snapshots/js/snapshot_edit_autocomplete.js' %}"></script>
+
 <script src="{% static 'discordvoice_snapshots/js/snapshot_edit_autocomplete.js' %}"></script>
 {% endblock %}
