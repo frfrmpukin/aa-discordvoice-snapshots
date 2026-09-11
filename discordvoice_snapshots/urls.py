@@ -13,4 +13,6 @@ urlpatterns = [
     path("api/", api.api_snapshots, name="api_snapshots"),
     path("api/user/<int:user_id>/", api.api_user_snapshots, name="api_user_snapshots"),
     path("api/audit/", api.api_audit_log, name="api_audit_log"),
+    path("api/user-search/", api.api_user_search, name="api_user_search"),
+    path("api/discord-user-search/", api.api_discord_user_search, name="api_discord_user_search"),
 ]
