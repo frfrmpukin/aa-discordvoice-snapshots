@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Channel, Snapshot, SnapshotUser, AuditLog
+from .models import Channel, Snapshot, SnapshotUser, AuditLog, SnapshotTag
 
 
 @admin.register(Channel)
@@ -29,3 +29,9 @@ class AuditLogAdmin(admin.ModelAdmin):
     list_filter = ("action", "timestamp")
     search_fields = ("user__username", "action", "old_value", "new_value")
     date_hierarchy = "timestamp"
+
+
+@admin.register(SnapshotTag)
+class SnapshotTagAdmin(admin.ModelAdmin):
+    list_display = ("name",)
+    search_fields = ("name",)
