@@ -10,30 +10,52 @@
     <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
 
     <h4 class="mt-4">Users in Snapshot</h4>
-    <ul class="list-group mb-3">
-        {% for entry in users %}
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                {{ entry.user.username }}
-                <form method="post" style="margin:0;">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="remove_user">
-                    <input type="hidden" name="user_id" value="{{ entry.user.id }}">
-                    <button class="btn btn-danger btn-sm">Remove</button>
-                </form>
-            </li>
-        {% empty %}
-            <li class="list-group-item">No users recorded.</li>
-        {% endfor %}
-    </ul>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="bulk_remove">
 
-    <h4>Add User</h4>
-    <form method="post" class="mb-4">
+        <ul class="list-group mb-3">
+            {% for entry in users %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="checkbox" name="bulk_user_ids" value="{{ entry.user.id }}">
+                        {{ entry.user.username }}
+                    </div>
+                    <form method="post" style="margin:0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_user">
+                        <input type="hidden" name="user_id" value="{{ entry.user.id }}">
+                        <button class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                </li>
+            {% empty %}
+                <li class="list-group-item">No users recorded.</li>
+            {% endfor %}
+        </ul>
+
+        <button class="btn btn-warning btn-sm">Bulk Remove Selected</button>
+    </form>
+
+    <h4 class="mt-4">Add User (AA Username)</h4>
+    <form method="post" class="mb-4" id="add-user-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="add_user">
         <div class="input-group">
-            <input type="text" name="username" class="form-control" placeholder="Username">
+            <input type="text" name="username" id="username-input" class="form-control" placeholder="Start typing username...">
             <button class="btn btn-success">Add</button>
         </div>
+        <div id="username-suggestions" class="list-group mt-2"></div>
+    </form>
+
+    <h4>Add User (Discord Username)</h4>
+    <form method="post" class="mb-4" id="add-discord-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_discord_user">
+        <div class="input-group">
+            <input type="text" name="discord_username" id="discord-input" class="form-control" placeholder="Start typing Discord username...">
+            <button class="btn btn-info">Add via Discord</button>
+        </div>
+        <div id="discord-suggestions" class="list-group mt-2"></div>
     </form>
 
     <h4>Danger Zone</h4>
@@ -47,4 +69,74 @@
         Back
     </a>
 </div>
+
+<script>
+function debounce(fn, delay) {
+    let timer = null;
+    return function(...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// AA username autocomplete
+const usernameInput = document.getElementById('username-input');
+const usernameSuggestions = document.getElementById('username-suggestions');
+
+if (usernameInput) {
+    usernameInput.addEventListener('input', debounce(function() {
+        const q = this.value;
+        if (!q) {
+            usernameSuggestions.innerHTML = '';
+            return;
+        }
+        fetch("{% url 'discordvoice_snapshots:api_user_search' %}?q=" + encodeURIComponent(q))
+            .then(r => r.json())
+            .then(data => {
+                usernameSuggestions.innerHTML = '';
+                data.results.forEach(u => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = u.username;
+                    item.addEventListener('click', () => {
+                        usernameInput.value = u.username;
+                        usernameSuggestions.innerHTML = '';
+                    });
+                    usernameSuggestions.appendChild(item);
+                });
+            });
+    }, 300));
+}
+
+// Discord username autocomplete
+const discordInput = document.getElementById('discord-input');
+const discordSuggestions = document.getElementById('discord-suggestions');
+
+if (discordInput) {
+    discordInput.addEventListener('input', debounce(function() {
+        const q = this.value;
+        if (!q) {
+            discordSuggestions.innerHTML = '';
+            return;
+        }
+        fetch("{% url 'discordvoice_snapshots:api_discord_user_search' %}?q=" + encodeURIComponent(q))
+            .then(r => r.json())
+            .then(data => {
+                discordSuggestions.innerHTML = '';
+                data.results.forEach(u => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'list-group-item list-group-item-action';
+                    item.textContent = u.discord_username + " (AA: " + u.aa_username + ")";
+                    item.addEventListener('click', () => {
+                        discordInput.value = u.discord_username;
+                        discordSuggestions.innerHTML = '';
+                    });
+                    discordSuggestions.appendChild(item);
+                });
+            });
+    }, 300));
+}
+</script>
 {% endblock %}
