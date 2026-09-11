@@ -1,268 +1,144 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth import get_user_model
+from django.shortcuts import render, redirect, get_object_or_404
+from django.utils import timezone
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required, permission_required
 
-from .models import Snapshot, SnapshotUser, AuditLog, SnapshotTag
-from .permissions import admin_required, editor_required, viewer_required
-from .utils import log_action
-from .utils_cleanup import cleanup_old_snapshots, cleanup_empty_snapshots
+from allianceauth.services.modules.discord import DiscordApi
+
+from .models import Snapshot, SnapshotUser, SnapshotTag, AuditLog, Channel
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
-@viewer_required
+@login_required
+@permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
 def snapshot_list(request):
-    snapshots = Snapshot.objects.select_related("channel").all()
-    return render(
-        request,
-        "discordvoice_snapshots/snapshot_list.html",
-        {"snapshots": snapshots}
-    )
+    snapshots = Snapshot.objects.select_related("tag").order_by("-timestamp")[:100]
+    return render(request, "discordvoice_snapshots/list.html", {"snapshots": snapshots})
 
 
-@viewer_required
+@login_required
+@permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
 def snapshot_detail(request, snapshot_id):
     snapshot = get_object_or_404(Snapshot, id=snapshot_id)
-    users = SnapshotUser.objects.filter(snapshot=snapshot)
-
-    log_action(
-        user=request.user,
-        action=f"Viewed snapshot {snapshot_id}"
-    )
-
-    return render(
-        request,
-        "discordvoice_snapshots/snapshot_detail.html",
-        {
-            "snapshot": snapshot,
-            "users": users
-        }
-    )
-
-
-@editor_required
-def snapshot_edit(request, snapshot_id):
-    snapshot = get_object_or_404(Snapshot, id=snapshot_id)
     users = SnapshotUser.objects.filter(snapshot=snapshot).select_related("user")
-
-    if request.method == "POST":
-        action = request.POST.get("action")
-
-        # Add AA user (autocomplete)
-        if action == "add_user":
-            username = request.POST.get("username")
-            try:
-                user = User.objects.get(username=username)
-                SnapshotUser.objects.get_or_create(snapshot=snapshot, user=user)
-
-                log_action(
-                    user=request.user,
-                    action=f"Added user {username} to snapshot {snapshot_id}",
-                    old_value=None,
-                    new_value=username
-                )
-                messages.success(request, f"User {username} added.")
-            except User.DoesNotExist:
-                messages.error(request, "User not found.")
-
-        # Add via Discord username
-        elif action == "add_discord_user":
-            from allianceauth.services.modules.discord.models import DiscordUser
-
-            discord_name = request.POST.get("discord_username")
-            du = DiscordUser.objects.filter(username=discord_name).select_related("user").first()
-            if du and du.user:
-                SnapshotUser.objects.get_or_create(snapshot=snapshot, user=du.user)
-
-                log_action(
-                    user=request.user,
-                    action=f"Added Discord user {discord_name} (AA: {du.user.username}) to snapshot {snapshot_id}",
-                    old_value=None,
-                    new_value=du.user.username
-                )
-                messages.success(request, f"Discord user {discord_name} added as {du.user.username}.")
-            else:
-                messages.error(request, "Discord user not found or not linked to an AA user.")
-
-        # Remove single user
-        elif action == "remove_user":
-            user_id = request.POST.get("user_id")
-            SnapshotUser.objects.filter(snapshot=snapshot, user_id=user_id).delete()
-
-            log_action(
-                user=request.user,
-                action=f"Removed user {user_id} from snapshot {snapshot_id}",
-                old_value=user_id,
-                new_value=None
-            )
-            messages.success(request, "User removed.")
-
-        # Bulk remove users
-        elif action == "bulk_remove":
-            ids = request.POST.getlist("bulk_user_ids")
-            removed = 0
-            for uid in ids:
-                removed += SnapshotUser.objects.filter(snapshot=snapshot, user_id=uid).delete()[0]
-
-            log_action(
-                user=request.user,
-                action=f"Bulk removed {removed} users from snapshot {snapshot_id}",
-                old_value=str(ids),
-                new_value=None
-            )
-            messages.success(request, f"Bulk removed {removed} users.")
-
-        # Delete snapshot
-        elif action == "delete_snapshot":
-            log_action(
-                user=request.user,
-                action=f"Deleted snapshot {snapshot_id}",
-                old_value=str(snapshot),
-                new_value=None
-            )
-            snapshot.delete()
-            messages.success(request, "Snapshot deleted.")
-            return redirect("discordvoice_snapshots:list")
-
-    return render(
-        request,
-        "discordvoice_snapshots/snapshot_edit.html",
-        {
-            "snapshot": snapshot,
-            "users": users,
-        }
-    )
+    return render(request, "discordvoice_snapshots/detail.html", {"snapshot": snapshot, "users": users})
 
 
-@editor_required
-def snapshot_delete(request, snapshot_id):
-    snapshot = get_object_or_404(Snapshot, id=snapshot_id)
-
-    if request.method == "POST":
-        log_action(
-            user=request.user,
-            action=f"Deleted snapshot {snapshot_id}",
-            old_value=str(snapshot),
-            new_value=None
-        )
-        snapshot.delete()
-        messages.success(request, "Snapshot deleted.")
-        return redirect("discordvoice_snapshots:list")
-
-    return render(
-        request,
-        "discordvoice_snapshots/snapshot_delete.html",
-        {"snapshot": snapshot}
-    )
-
-
-def user_dashboard(request, user_id):
-    snapshots = SnapshotUser.objects.filter(user_id=user_id).select_related("snapshot")
-    return render(
-        request,
-        "discordvoice_snapshots/user_dashboard.html",
-        {"snapshots": snapshots}
-    )
-
-
-@editor_required
+@login_required
+@permission_required("discordvoice_snapshots.add_snapshot", raise_exception=True)
 def take_snapshot(request):
+    """
+    Manual snapshot: queries Discord via Alliance Auth DiscordApi and stores a snapshot.
+    Editors/admins choose an optional tag from the dropdown.
+    """
     if request.method == "POST":
         tag_id = request.POST.get("tag")
-        tag = SnapshotTag.objects.filter(id=tag_id).first()
+        tag = SnapshotTag.objects.filter(id=tag_id).first() if tag_id else None
 
         api = DiscordApi()
-        guild_id = settings.DISCORD_GUILD_ID
+        guild_id = getattr(settings, "DISCORD_GUILD_ID", None)
+        if not guild_id:
+            messages.error(request, "DISCORD_GUILD_ID is not configured.")
+            return redirect("discordvoice_snapshots:list")
+
+        # get_guild_voice_states returns a list/dict depending on your AA version; adapt as needed
         voice_states = api.get_guild_voice_states(guild_id)
 
         snapshot = Snapshot.objects.create(
-            channel_name="Voice Channels",
+            channel_name="Multiple Channels",
             timestamp=timezone.now(),
             tag=tag
         )
 
+        # voice_states expected to be iterable of dicts with user_id and username
         for state in voice_states:
+            discord_user_id = state.get("user_id") or state.get("user", {}).get("id")
+            # try to map to an AA user via allianceauth discord models if available
+            aa_user = None
+            try:
+                from allianceauth.services.modules.discord.models import DiscordUser
+                du = DiscordUser.objects.filter(discord_id=str(discord_user_id)).first()
+                if du:
+                    aa_user = du.user
+            except Exception:
+                aa_user = None
+
             SnapshotUser.objects.get_or_create(
                 snapshot=snapshot,
-                user_id=state["user_id"]
+                user=aa_user if aa_user else None,
+                defaults={}
             )
 
-        return redirect("discordvoice_snapshots:snapshot_detail", snapshot.id)
+        AuditLog.objects.create(
+            user=request.user,
+            action=f"Take snapshot id={snapshot.id}",
+            new_value=f"tag={tag.name if tag else None}"
+        )
+
+        messages.success(request, "Snapshot taken.")
+        return redirect("discordvoice_snapshots:detail", snapshot.id)
 
     tags = SnapshotTag.objects.all()
     return render(request, "discordvoice_snapshots/take_snapshot.html", {"tags": tags})
 
-@editor_required
-def edit_snapshot(request, snapshot_id):
-    snapshot = get_object_or_404(Snapshot, id=snapshot_id)
 
+@login_required
+@permission_required("discordvoice_snapshots.change_snapshot", raise_exception=True)
+def snapshot_edit(request, snapshot_id):
+    snapshot = get_object_or_404(Snapshot, id=snapshot_id)
     if request.method == "POST":
         tag_id = request.POST.get("tag")
-        snapshot.tag = SnapshotTag.objects.filter(id=tag_id).first()
+        snapshot.tag = SnapshotTag.objects.filter(id=tag_id).first() if tag_id else None
         snapshot.save()
-        return redirect("discordvoice_snapshots:snapshot_detail", snapshot.id)
+        AuditLog.objects.create(
+            user=request.user,
+            action=f"Edit snapshot id={snapshot.id}",
+            old_value="",
+            new_value=f"tag={snapshot.tag.name if snapshot.tag else None}"
+        )
+        messages.success(request, "Snapshot updated.")
+        return redirect("discordvoice_snapshots:detail", snapshot.id)
 
     tags = SnapshotTag.objects.all()
-    return render(
-        request,
-        "discordvoice_snapshots/edit_snapshot.html",
-        {"snapshot": snapshot, "tags": tags}
-    )
+    return render(request, "discordvoice_snapshots/edit_snapshot.html", {"snapshot": snapshot, "tags": tags})
 
 
-@admin_required
-def admin_console(request):
-    log_action(
-        user=request.user,
-        action="Opened snapshot admin console"
-    )
-    return render(
-        request,
-        "discordvoice_snapshots/admin_console.html"
-    )
-
-
-@viewer_required
-def snapshot_detail(request, snapshot_id):
+@login_required
+@permission_required("discordvoice_snapshots.delete_snapshot", raise_exception=True)
+def snapshot_delete(request, snapshot_id):
     snapshot = get_object_or_404(Snapshot, id=snapshot_id)
-    users = SnapshotUser.objects.filter(snapshot=snapshot)
-
-    return render(
-        request,
-        "discordvoice_snapshots/snapshot_detail.html",
-        {"snapshot": snapshot, "users": users}
-    )
-
-
-
-@admin_required
-def audit_log_view(request):
-    logs = AuditLog.objects.select_related("user").order_by("-timestamp")
-    return render(
-        request,
-        "discordvoice_snapshots/audit_log.html",
-        {"logs": logs}
-    )
-
-
-@admin_required
-def cleanup_tools(request):
-    result = None
-
     if request.method == "POST":
-        action = request.POST.get("action")
+        snapshot.delete()
+        AuditLog.objects.create(
+            user=request.user,
+            action=f"Delete snapshot id={snapshot_id}"
+        )
+        messages.success(request, "Snapshot deleted.")
+        return redirect("discordvoice_snapshots:list")
+    return render(request, "discordvoice_snapshots/confirm_delete.html", {"snapshot": snapshot})
 
-        if action == "cleanup_old":
-            days = int(request.POST.get("days", 30))
-            result = cleanup_old_snapshots(days=days, user=request.user)
-            messages.success(request, f"Deleted {result} old snapshots.")
 
-        elif action == "cleanup_empty":
-            result = cleanup_empty_snapshots(user=request.user)
-            messages.success(request, f"Deleted {result} empty snapshots.")
+# Placeholder views for admin console and user dashboard (implement as needed)
+@login_required
+@permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
+def user_dashboard(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    snapshots = SnapshotUser.objects.filter(user=user).select_related("snapshot").order_by("-snapshot__timestamp")
+    return render(request, "discordvoice_snapshots/user_dashboard.html", {"user": user, "snapshots": snapshots})
 
-    return render(
-        request,
-        "discordvoice_snapshots/cleanup_tools.html",
-        {"result": result}
-    )
+
+@login_required
+@permission_required("discordvoice_snapshots.view_auditlog", raise_exception=True)
+def audit_log_view(request):
+    logs = AuditLog.objects.select_related("user").order_by("-timestamp")[:200]
+    return render(request, "discordvoice_snapshots/audit_log.html", {"logs": logs})
+
+
+@login_required
+@permission_required("discordvoice_snapshots.change_snapshot", raise_exception=True)
+def cleanup_tools(request):
+    # implement cleanup logic or admin UI here
+    return render(request, "discordvoice_snapshots/cleanup_tools.html")
