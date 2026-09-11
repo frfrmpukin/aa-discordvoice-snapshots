@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 
-from .models import Snapshot, SnapshotUser, AuditLog
+from .models import Snapshot, SnapshotUser, AuditLog, SnapshotTag
 from .permissions import admin_required, editor_required, viewer_required
 from .utils import log_action
 from .utils_cleanup import cleanup_old_snapshots, cleanup_empty_snapshots
