@@ -1,14 +1,27 @@
 {% extends "allianceauth/base.html" %}
-{% block title %}Snapshot Administration{% endblock %}
+{% block title %}Snapshot Admin Console{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Snapshot Administration</h2>
+    <h2>Snapshot Admin Console</h2>
     <hr>
 
-    <p>This section will contain administrative tools for managing snapshots,
-       editing records, and performing cleanup tasks.</p>
+    <p>Admin tools for managing Discord voice snapshots.</p>
 
-    <p>More features will be added as the module develops.</p>
+    <div class="list-group mt-3">
+        <a href="{% url 'discordvoice_snapshots:list' %}" class="list-group-item list-group-item-action">
+            View All Snapshots
+        </a>
+        <a href="{% url 'discordvoice_snapshots:audit_log' %}" class="list-group-item list-group-item-action">
+            View Audit Log
+        </a>
+        <a href="{% url 'discordvoice_snapshots:cleanup_tools' %}" class="list-group-item list-group-item-action">
+            Snapshot Cleanup Tools
+        </a>
+    </div>
+
+    <a href="{% url 'allianceauth:dashboard' %}" class="btn btn-secondary mt-3">
+        Back to Dashboard
+    </a>
 </div>
 {% endblock %}
