@@ -7,7 +7,6 @@ urlpatterns = [
     # Snapshot views
     path("", views.snapshot_list, name="list"),
     path("take/", views.take_snapshot, name="take_snapshot"),
-    path("voice/", include("discordvoice_snapshots.urls")),
     path("<int:snapshot_id>/", views.snapshot_detail, name="detail"),
     path("<int:snapshot_id>/edit/", views.snapshot_edit, name="edit"),
     path("<int:snapshot_id>/delete/", views.snapshot_delete, name="delete"),
