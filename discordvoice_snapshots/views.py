@@ -5,6 +5,7 @@ from django.contrib import messages
 from .models import Snapshot, SnapshotUser, AuditLog
 from .permissions import admin_required, editor_required, viewer_required
 from .utils import log_action
+from .utils_cleanup import cleanup_old_snapshots, cleanup_empty_snapshots
 
 User = get_user_model()
 
@@ -149,4 +150,30 @@ def audit_log_view(request):
         request,
         "discordvoice_snapshots/audit_log.html",
         {"logs": logs}
+    )
+
+
+@admin_required
+def cleanup_tools(request):
+    """
+    Admin cleanup UI
+    """
+    result = None
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "cleanup_old":
+            days = int(request.POST.get("days", 30))
+            result = cleanup_old_snapshots(days=days, user=request.user)
+            messages.success(request, f"Deleted {result} old snapshots.")
+
+        elif action == "cleanup_empty":
+            result = cleanup_empty_snapshots(user=request.user)
+            messages.success(request, f"Deleted {result} empty snapshots.")
+
+    return render(
+        request,
+        "discordvoice_snapshots/cleanup_tools.html",
+        {"result": result}
     )
