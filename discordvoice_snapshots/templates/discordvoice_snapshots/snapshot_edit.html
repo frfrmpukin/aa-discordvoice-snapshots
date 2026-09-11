@@ -1,0 +1,48 @@
+{% extends "allianceauth/base.html" %}
+{% block title %}Edit Snapshot{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Edit Snapshot</h2>
+    <hr>
+
+    <p><strong>Channel:</strong> {{ snapshot.channel.name }}</p>
+    <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
+
+    <h4 class="mt-4">Users in Snapshot</h4>
+    <ul class="list-group mb-3">
+        {% for entry in users %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                {{ entry.user.username }}
+                <form method="post" style="margin:0;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="remove_user">
+                    <input type="hidden" name="user_id" value="{{ entry.user.id }}">
+                    <button class="btn btn-danger btn-sm">Remove</button>
+                </form>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No users recorded.</li>
+        {% endfor %}
+    </ul>
+
+    <h4>Add User</h4>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_user">
+        <div class="input-group">
+            <input type="text" name="username" class="form-control" placeholder="Username">
+            <button class="btn btn-success">Add</button>
+        </div>
+    </form>
+
+    <h4>Danger Zone</h4>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="delete_snapshot">
+        <button class="btn btn-danger">Delete Snapshot</button>
+    </form>
+
+    <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary mt-3">Back</a>
+</div>
+{% endblock %}
