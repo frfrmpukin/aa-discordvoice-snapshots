@@ -1,11 +1,16 @@
 from django.urls import path
-from . import views
+from . import views, api
 
 app_name = "discordvoice_snapshots"
 
 urlpatterns = [
+    # Web UI
     path("", views.snapshot_list, name="list"),
     path("<int:snapshot_id>/", views.snapshot_detail, name="detail"),
     path("user/<int:user_id>/", views.user_dashboard, name="user_dashboard"),
     path("admin/", views.admin_console, name="admin_console"),
+
+    # API Endpoints
+    path("api/", api.api_snapshots, name="api_snapshots"),
+    path("api/user/<int:user_id>/", api.api_user_snapshots, name="api_user_snapshots"),
 ]
