@@ -7,7 +7,7 @@ setup(
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
 
-    url="https://github.com/YOUR_GITHUB/aa-discord-voicesnapshot",
+    url="https://github.com/frfrmpukin/aa-discord-voicesnapshot",
     project_urls={
         "Source": "https://github.com/frfrmpukin/aa-discord-voicesnapshot",
         "Tracker": "https://github.com/frfrmpukin/aa-discord-voicesnapshot/issues",
