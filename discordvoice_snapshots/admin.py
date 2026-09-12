@@ -10,15 +10,15 @@ class ChannelAdmin(admin.ModelAdmin):
 
 @admin.register(Snapshot)
 class SnapshotAdmin(admin.ModelAdmin):
-    list_display = ("channel", "timestamp")
-    list_filter = ("channel", "timestamp")
+    list_display = ("channel", "timestamp", "tag")
+    list_filter = ("channel", "timestamp", "tag")
     search_fields = ("channel__name",)
     date_hierarchy = "timestamp"
 
 
 @admin.register(SnapshotUser)
 class SnapshotUserAdmin(admin.ModelAdmin):
-    list_display = ("snapshot", "user")
+    list_display = ("snapshot", "user", "discord_user_id", "discord_username")
     list_filter = ("snapshot__channel",)
     search_fields = ("user__username", "snapshot__channel__name")
 
