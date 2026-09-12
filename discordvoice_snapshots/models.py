@@ -20,13 +20,12 @@ class SnapshotTag(models.Model):
 
 
 class Snapshot(models.Model):
-    channel_name = models.CharField(max_length=200)
     channel = models.ForeignKey(
         Channel,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="snapshots"
+        null=False,
+        blank=False,
+        on_delete=models.CASCADE,
+        related_name="snapshots",
     )
     timestamp = models.DateTimeField(auto_now_add=True)
     tag = models.ForeignKey(
@@ -34,15 +33,19 @@ class Snapshot(models.Model):
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="snapshots"
+        related_name="snapshots",
     )
 
     def __str__(self):
-        return f"{self.channel_name} @ {self.timestamp}"
+        return f"{self.channel.name} @ {self.timestamp}"
 
 
 class SnapshotUser(models.Model):
-    snapshot = models.ForeignKey(Snapshot, on_delete=models.CASCADE, related_name="snapshot_users")
+    snapshot = models.ForeignKey(
+        Snapshot,
+        on_delete=models.CASCADE,
+        related_name="snapshot_users",
+    )
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     discord_user_id = models.CharField(max_length=64, null=True, blank=True)
     discord_username = models.CharField(max_length=200, null=True, blank=True)
