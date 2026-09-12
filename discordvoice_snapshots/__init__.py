@@ -1,2 +1,2 @@
 __version__ = "1.0.0"
-default_app_config = "aa_discord_voicesnapshot.apps.DiscordVoiceSnapshotConfig"
+default_app_config = "discordvoice_snapshots.apps.DiscordVoiceSnapshotsConfig"
