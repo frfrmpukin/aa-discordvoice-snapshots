@@ -1,29 +1,34 @@
-{% extends "base.html" %}
+{% extends "allianceauth/base.html" %}
+{% block title %}Snapshot Detail{% endblock %}
+
 {% block content %}
-<h2>Snapshot Detail</h2>
-<p><strong>Channel:</strong> {{ snapshot.channel_name }}</p>
-<p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
-<p><strong>Tag:</strong> {{ snapshot.tag.name|default:"None" }}</p>
+<div class="container mt-4">
+    <h2>Snapshot Detail</h2>
 
-<h4>Users</h4>
-<ul>
-  {% for su in users %}
-    <li>
-      {% if su.user %}
-        {{ su.user.username }}
-      {% else %}
-        {{ su.discord_username|default:su.discord_user_id }}
-      {% endif %}
-    </li>
-  {% empty %}
-    <li>No users recorded</li>
-  {% endfor %}
-</ul>
+    <p><strong>Channel:</strong> {{ snapshot.channel.name }}</p>
+    <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
+    <p><strong>Tag:</strong> {{ snapshot.tag.name|default:"None" }}</p>
 
-<a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-primary">Edit</a>
-<form method="post" action="{% url 'discordvoice_snapshots:delete' snapshot.id %}" style="display:inline;">
-  {% csrf_token %}
-  <button class="btn btn-danger">Delete</button>
-</form>
-<a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary">Back</a>
+    <h4>Users</h4>
+    <ul>
+        {% for su in users %}
+            <li>
+                {% if su.user %}
+                    {{ su.user.username }}
+                {% else %}
+                    {{ su.discord_username|default:su.discord_user_id }}
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No users recorded</li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-primary">Edit</a>
+    <form method="post" action="{% url 'discordvoice_snapshots:delete' snapshot.id %}" style="display:inline;">
+        {% csrf_token %}
+        <button class="btn btn-danger">Delete</button>
+    </form>
+    <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary">Back</a>
+</div>
 {% endblock %}
