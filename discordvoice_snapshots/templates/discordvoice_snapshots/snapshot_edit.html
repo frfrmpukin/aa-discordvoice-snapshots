@@ -1,34 +1,47 @@
-{% extends "base.html" %}
+{% extends "allianceauth/base.html" %}
+{% block title %}Edit Snapshot{% endblock %}
+
 {% block content %}
-<h2>Edit Snapshot</h2>
-<form method="post">
-  {% csrf_token %}
-  <div class="mb-3">
-    <label class="form-label">Tag</label>
-    <select name="tag" class="form-select">
-      <option value="">No Tag</option>
-      {% for tag in tags %}
-        <option value="{{ tag.id }}" {% if snapshot.tag_id == tag.id %}selected{% endif %}>{{ tag.name }}</option>
-      {% endfor %}
-    </select>
-  </div>
+<div class="container mt-4">
+    <h2>Edit Snapshot</h2>
 
-  <h4>Users</h4>
-  <ul>
-    {% for su in users %}
-      <li>
-        {% if su.user %}{{ su.user.username }}{% else %}{{ su.discord_username|default:su.discord_user_id }}{% endif %}
-        <form method="post" style="display:inline;">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="remove_user">
-          <input type="hidden" name="user_id" value="{{ su.user.id }}">
-          <button class="btn btn-sm btn-link">Remove</button>
-        </form>
-      </li>
-    {% endfor %}
-  </ul>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label">Tag</label>
+            <select name="tag" class="form-select">
+                <option value="">No Tag</option>
+                {% for tag in tags %}
+                    <option value="{{ tag.id }}" {% if snapshot.tag_id == tag.id %}selected{% endif %}>
+                        {{ tag.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-  <button class="btn btn-success">Save</button>
-  <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
-</form>
+        <h4>Users</h4>
+        <ul>
+            {% for su in users %}
+                <li>
+                    {% if su.user %}
+                        {{ su.user.username }}
+                    {% else %}
+                        {{ su.discord_username|default:su.discord_user_id }}
+                    {% endif %}
+                    {% if su.user %}
+                        <form method="post" style="display:inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="remove_user">
+                            <input type="hidden" name="user_id" value="{{ su.user.id }}">
+                            <button class="btn btn-sm btn-link">Remove</button>
+                        </form>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+
+        <button class="btn btn-success">Save</button>
+        <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}
