@@ -1,30 +1,35 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import permission_required
 
 from allianceauth.services.modules.discord.models import DiscordUser
 from .models import Snapshot, SnapshotUser, AuditLog
-from .permissions import editor_required
 
 User = get_user_model()
 
 
 @require_GET
+@permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
 def api_snapshots(request):
     data = [
         {
             "id": s.id,
             "channel": s.channel.name,
             "timestamp": s.timestamp,
+            "tag": s.tag.name if s.tag else None,
         }
-        for s in Snapshot.objects.select_related("channel")
+        for s in Snapshot.objects.select_related("channel", "tag")
     ]
     return JsonResponse({"snapshots": data})
 
 
 @require_GET
+@permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
 def api_user_snapshots(request, user_id):
-    entries = SnapshotUser.objects.filter(user_id=user_id).select_related("snapshot")
+    entries = SnapshotUser.objects.filter(user_id=user_id).select_related(
+        "snapshot", "snapshot__channel"
+    )
     data = [
         {
             "snapshot_id": e.snapshot.id,
@@ -37,6 +42,7 @@ def api_user_snapshots(request, user_id):
 
 
 @require_GET
+@permission_required("discordvoice_snapshots.view_auditlog", raise_exception=True)
 def api_audit_log(request):
     logs = AuditLog.objects.select_related("user").order_by("-timestamp")
     data = [
@@ -53,39 +59,28 @@ def api_audit_log(request):
 
 
 @require_GET
+@permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
 def api_user_search(request):
-    """
-    AA-style username autocomplete.
-    ?q=<partial>
-    """
     q = request.GET.get("q", "").strip()
     if not q:
         return JsonResponse({"results": []})
 
     users = User.objects.filter(username__icontains=q)[:20]
-    data = [
-        {
-            "id": u.id,
-            "username": u.username,
-        }
-        for u in users
-    ]
+    data = [{"id": u.id, "username": u.username} for u in users]
     return JsonResponse({"results": data})
 
 
-@editor_required
 @require_GET
+@permission_required("discordvoice_snapshots.change_snapshot", raise_exception=True)
 def api_discord_user_search(request):
-    """
-    Discord username search.
-    ?q=<partial>
-    Only editors/admins may use this.
-    """
     q = request.GET.get("q", "").strip()
     if not q:
         return JsonResponse({"results": []})
 
-    discord_users = DiscordUser.objects.filter(username__icontains=q).select_related("user")[:20]
+    discord_users = (
+        DiscordUser.objects.filter(username__icontains=q)
+        .select_related("user")[:20]
+    )
     data = [
         {
             "id": du.user.id if du.user else None,
