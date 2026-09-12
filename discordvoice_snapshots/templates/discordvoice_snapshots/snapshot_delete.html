@@ -1,11 +1,14 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Delete Snapshot</h2>
-<p>Are you sure you want to delete snapshot {{ snapshot }}?</p>
-<form method="post">
-  {% csrf_token %}
-  <button class="btn btn-danger">Yes, delete</button>
-  <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
-</form>
-{% endblock %}
+{% extends "allianceauth/base.html" %}
+{% block title %}Delete Snapshot{% endblock %}
 
+{% block content %}
+<div class="container mt-4">
+    <h2>Delete Snapshot</h2>
+    <p>Are you sure you want to delete snapshot {{ snapshot }}?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn btn-danger">Yes, delete</button>
+        <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
