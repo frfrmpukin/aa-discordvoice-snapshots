@@ -1,6 +1,7 @@
 from allianceauth.services.hooks import MenuItemHook
 from allianceauth import hooks
 
+
 class VoiceSnapshotMenu(MenuItemHook):
     def __init__(self):
         super().__init__(
@@ -10,10 +11,11 @@ class VoiceSnapshotMenu(MenuItemHook):
         )
 
     def render(self, request):
-        if request.user.has_perm("aa_discord_voicesnapshot.view_snapshot_history"):
+        if request.user.has_perm("discordvoice_snapshots.view_snapshot"):
             return super().render(request)
-        return ""
+        return []
 
-@hooks.register('menu_item_hook')
+
+@hooks.register("menu_item_hook")
 def register_menu():
     return VoiceSnapshotMenu()
