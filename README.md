@@ -37,8 +37,6 @@ Discord username lookup, and bulk user removal.
 
 ## Installation
 
-Add the module to your Alliance Auth installation:
-
 ### Github link
 ```
 pip install git+https://github.com/frfrmpukin/aa-discordvoice-snapshots
