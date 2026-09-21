@@ -11,7 +11,14 @@ class VoiceSnapshotMenu(MenuItemHook):
         )
 
     def render(self, request):
-        if request.user.has_perm("discordvoice_snapshots.view_snapshot"):
+        if not request.user.is_authenticated:
+            return []
+
+        if (
+            request.user.has_perm("discordvoice_snapshots.view_snapshot")
+            or request.user.has_perm("discordvoice_snapshots.change_snapshot")
+            or request.user.has_perm("discordvoice_snapshots.add_snapshot")
+        ):
             return super().render(request)
         return []
 

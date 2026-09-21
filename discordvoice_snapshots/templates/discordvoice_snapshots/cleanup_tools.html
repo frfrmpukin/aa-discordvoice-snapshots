@@ -6,6 +6,25 @@
     <h2>Snapshot Cleanup Tools</h2>
     <hr>
 
+    <h4>Retention Policy</h4>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="save_policy">
+        <div class="mb-3">
+            <label class="form-label">Snapshot retention (days)</label>
+            <input type="number" name="snapshot_days" class="form-control" value="{{ policy.snapshot_days }}" min="0">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Audit log retention (days)</label>
+            <input type="number" name="audit_days" class="form-control" value="{{ policy.audit_days }}" min="0">
+        </div>
+        <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" name="enabled" {% if policy.enabled %}checked{% endif %}>
+            <label class="form-check-label">Retention policy enabled</label>
+        </div>
+        <button class="btn btn-primary">Save retention policy</button>
+    </form>
+
     <h4>Delete Old Snapshots</h4>
     <form method="post" class="mb-4">
         {% csrf_token %}
@@ -23,9 +42,19 @@
         <button class="btn btn-warning">Delete Snapshots With No Users</button>
     </form>
 
+    <h4>Delete Old Audit Log Entries</h4>
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="cleanup_audit">
+        <div class="input-group">
+            <input type="number" name="audit_days" class="form-control" value="90" min="1">
+            <button class="btn btn-outline-danger">Delete Older Than X Days</button>
+        </div>
+    </form>
+
     {% if result is not None %}
         <div class="alert alert-info">
-            Cleanup completed. Deleted {{ result }} snapshots.
+            Cleanup completed. Deleted {{ result }} record(s).
         </div>
     {% endif %}
 

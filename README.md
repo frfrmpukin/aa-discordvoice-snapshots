@@ -11,25 +11,29 @@ Discord username lookup, and bulk user removal.
 
 ### Snapshot Management
 - Create snapshots manually or via periodic Celery tasks
-- View snapshot details and user lists
-- Edit snapshots (add/remove users)
+- View snapshot details and user lists with privacy-aware filtering
+- Edit snapshots (add/remove users, tags)
 - Bulk remove users
 - Delete snapshots safely with confirmation
+- Track creator metadata and retention policies
 
 ### Advanced Editing Tools
 - AA username autocomplete
 - Discord username lookup (editor-only)
 - Bulk user removal via checkbox UI
+- Snapshot privacy and retention controls for admins
 
 ### Admin Tools
 - Snapshot cleanup (old snapshots, empty snapshots)
 - Audit log viewer
+- Retention policy configuration for snapshots and logs
 - Admin console navigation entry
 
 ### API Endpoints
-- Snapshot list
+- Snapshot list with pagination and sorting
 - User snapshot history
 - Audit log
+- Audit log trim endpoint
 - Username autocomplete
 - Discord username search (editor-only)
 
@@ -56,6 +60,11 @@ CELERYBEAT_SCHEDULE["snapshot_every_10min"] = {
 CELERYBEAT_SCHEDULE["cleanup_daily"] = {
     "task": "discordvoice_snapshots.tasks.periodic_cleanup",
     "schedule": crontab(hour=3, minute=0),
+}
+
+CELERYBEAT_SCHEDULE["retention_daily"] = {
+    "task": "discordvoice_snapshots.tasks.periodic_retention_cleanup",
+    "schedule": crontab(hour=4, minute=0),
 }
 ```
 ### Migrate to add database tables
@@ -103,6 +112,7 @@ Can:
 - `All Editor actions`
 - `Delete snapshots`
 - `View audit logs`
+- `Manage retention and cleanup`
 - `Access admin console`
 Requires Django permissions:
 - `All Editor permissions`
@@ -113,6 +123,12 @@ Requires Django permissions:
 
 ### SuperAdmin
 Alliance Auth superusers automatically bypass all permission checks.
+
+### Privacy Model
+- Standard users can view only their own membership in a snapshot unless they have editor or admin role permissions.
+- Editors can review snapshots they are authorized to manage.
+- Admins can access the full audit and retention tools.
+- Retention windows can be configured independently for snapshots and audit logs.
 
 ### Automatic Group Setup
 A management command is included:

@@ -20,6 +20,13 @@ class SnapshotTag(models.Model):
 
 
 class Snapshot(models.Model):
+    class AccessScope(models.TextChoices):
+        SELF = "self", "Self"
+        CORPORATION = "corporation", "Corporation"
+        ALLIANCE = "alliance", "Alliance"
+        ADMIN = "admin", "Admin"
+        SUPERADMIN = "superadmin", "Superadmin"
+
     channel = models.ForeignKey(
         Channel,
         null=False,
@@ -35,6 +42,23 @@ class Snapshot(models.Model):
         on_delete=models.SET_NULL,
         related_name="snapshots",
     )
+    created_by = models.ForeignKey(
+        User,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_snapshots",
+    )
+    scope = models.CharField(
+        max_length=20,
+        choices=AccessScope.choices,
+        default=AccessScope.SELF,
+    )
+    visibility = models.CharField(
+        max_length=20,
+        choices=AccessScope.choices,
+        default=AccessScope.SELF,
+    )
 
     def __str__(self):
         return f"{self.channel.name} @ {self.timestamp}"
@@ -49,6 +73,7 @@ class SnapshotUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     discord_user_id = models.CharField(max_length=64, null=True, blank=True)
     discord_username = models.CharField(max_length=200, null=True, blank=True)
+    is_visible_to_owner = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ("snapshot", "user", "discord_user_id")
@@ -68,3 +93,25 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.timestamp} - {self.action}"
+
+
+class RetentionPolicy(models.Model):
+    name = models.CharField(max_length=100, default="default")
+    snapshot_days = models.PositiveIntegerField(
+        default=365,
+        help_text="Days to keep snapshots. Set to 0 to disable snapshot pruning.",
+    )
+    audit_days = models.PositiveIntegerField(
+        default=90,
+        help_text="Days to keep audit logs. Set to 0 to disable audit pruning.",
+    )
+    enabled = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Retention Policy"
+        verbose_name_plural = "Retention Policies"
+
+    def __str__(self):
+        return f"{self.name} (snapshots: {self.snapshot_days}d, audit: {self.audit_days}d)"

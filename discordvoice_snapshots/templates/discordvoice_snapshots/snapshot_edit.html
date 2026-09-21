@@ -7,6 +7,7 @@
 
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="action" value="save">
         <div class="mb-3">
             <label class="form-label">Tag</label>
             <select name="tag" class="form-select">
@@ -19,29 +20,31 @@
             </select>
         </div>
 
-        <h4>Users</h4>
-        <ul>
-            {% for su in users %}
-                <li>
-                    {% if su.user %}
-                        {{ su.user.username }}
-                    {% else %}
-                        {{ su.discord_username|default:su.discord_user_id }}
-                    {% endif %}
-                    {% if su.user %}
-                        <form method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="remove_user">
-                            <input type="hidden" name="user_id" value="{{ su.user.id }}">
-                            <button class="btn btn-sm btn-link">Remove</button>
-                        </form>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-
         <button class="btn btn-success">Save</button>
         <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
     </form>
+
+    <h4 class="mt-4">Users</h4>
+    <ul>
+        {% for su in users %}
+            <li>
+                {% if su.user %}
+                    {{ su.user.username }}
+                {% else %}
+                    {{ su.discord_username|default:su.discord_user_id }}
+                {% endif %}
+                {% if su.user %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_user">
+                        <input type="hidden" name="user_id" value="{{ su.user.id }}">
+                        <button class="btn btn-sm btn-link">Remove</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No users recorded</li>
+        {% endfor %}
+    </ul>
 </div>
 {% endblock %}

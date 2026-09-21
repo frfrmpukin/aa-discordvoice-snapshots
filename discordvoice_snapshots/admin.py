@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Channel, Snapshot, SnapshotUser, AuditLog, SnapshotTag
+from .models import Channel, Snapshot, SnapshotUser, AuditLog, SnapshotTag, RetentionPolicy
 
 
 @admin.register(Channel)
@@ -10,9 +10,9 @@ class ChannelAdmin(admin.ModelAdmin):
 
 @admin.register(Snapshot)
 class SnapshotAdmin(admin.ModelAdmin):
-    list_display = ("channel", "timestamp", "tag")
+    list_display = ("channel", "timestamp", "tag", "created_by")
     list_filter = ("channel", "timestamp", "tag")
-    search_fields = ("channel__name",)
+    search_fields = ("channel__name", "created_by__username")
     date_hierarchy = "timestamp"
 
 
@@ -34,4 +34,11 @@ class AuditLogAdmin(admin.ModelAdmin):
 @admin.register(SnapshotTag)
 class SnapshotTagAdmin(admin.ModelAdmin):
     list_display = ("name",)
+    search_fields = ("name",)
+
+
+@admin.register(RetentionPolicy)
+class RetentionPolicyAdmin(admin.ModelAdmin):
+    list_display = ("name", "snapshot_days", "audit_days", "enabled")
+    list_filter = ("enabled",)
     search_fields = ("name",)

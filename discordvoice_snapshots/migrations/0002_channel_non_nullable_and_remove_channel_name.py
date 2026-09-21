@@ -2,18 +2,25 @@ from django.db import migrations, models
 
 
 def forwards(apps, schema_editor):
-    # No data migration required here because channel should already be populated.
-    # This forwards step is intentionally empty; the schema operations below handle the change.
-    pass
+    Channel = apps.get_model("discordvoice_snapshots", "Channel")
+    Snapshot = apps.get_model("discordvoice_snapshots", "Snapshot")
+
+    fallback_channel, _ = Channel.objects.get_or_create(
+        name="Unknown Channel",
+        channel_type="voice",
+    )
+
+    for snapshot in Snapshot.objects.filter(channel__isnull=True):
+        snapshot.channel = fallback_channel
+        snapshot.save(update_fields=["channel"])
 
 
 def backwards(apps, schema_editor):
-    # On reverse, re-create channel_name from channel if present.
     Snapshot = apps.get_model("discordvoice_snapshots", "Snapshot")
-    for snap in Snapshot.objects.select_related("channel").all():
-        if snap.channel:
-            snap.channel_name = snap.channel.name
-            snap.save(update_fields=["channel_name"])
+    for snapshot in Snapshot.objects.select_related("channel").all():
+        if snapshot.channel:
+            snapshot.channel_name = snapshot.channel.name
+            snapshot.save(update_fields=["channel_name"])
 
 
 class Migration(migrations.Migration):
@@ -23,7 +30,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # 1) Make channel non-nullable (AlterField)
+        migrations.RunPython(forwards, migrations.RunPython.noop),
         migrations.AlterField(
             model_name="snapshot",
             name="channel",
@@ -33,7 +40,6 @@ class Migration(migrations.Migration):
                 related_name="snapshots",
             ),
         ),
-        # 2) Remove the old channel_name field
         migrations.RemoveField(
             model_name="snapshot",
             name="channel_name",
