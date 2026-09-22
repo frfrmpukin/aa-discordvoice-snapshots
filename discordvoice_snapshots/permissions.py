@@ -1,12 +1,23 @@
 from functools import wraps
 
-from allianceauth.permissions import site_admin_required
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import (
+    login_required,
+    permission_required,
+    user_passes_test,
+)
 
 from .models import Snapshot
 
 
-admin_required = site_admin_required
+def _is_site_admin(user):
+    return bool(
+        user
+        and user.is_authenticated
+        and (user.is_superuser or user.is_staff)
+    )
+
+
+admin_required = user_passes_test(_is_site_admin)
 
 
 def _login_and_permission(perm):
