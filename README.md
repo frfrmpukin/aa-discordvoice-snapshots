@@ -50,6 +50,27 @@ Add to INSTALLED_APPS
 ```
 INSTALLED_APPS += ["discordvoice_snapshots"]
 ```
+
+Register the module URLs in your Alliance Auth project's root URL
+configuration, normally `myauth/myauth/urls.py`:
+
+```python
+from django.urls import include, path
+
+from allianceauth import urls
+
+urlpatterns = [
+    path("", include(urls)),
+    path(
+        "discordvoice-snapshots/",
+        include(("discordvoice_snapshots.urls", "discordvoice_snapshots")),
+    ),
+]
+```
+
+The URL registration is required because installing a Python package cannot
+modify the host Alliance Auth project's URL configuration automatically.
+
 Also activate periodic tasks
 ```
 CELERYBEAT_SCHEDULE["snapshot_every_10min"] = {
