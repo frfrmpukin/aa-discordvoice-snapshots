@@ -89,6 +89,7 @@ class SnapshotUser(models.Model):
 
 
 class ActiveVoiceState(models.Model):
+    id = models.BigAutoField(primary_key=True)
     guild_id = models.CharField(max_length=64)
     discord_user_id = models.CharField(max_length=64)
     discord_username = models.CharField(max_length=200, blank=True)
