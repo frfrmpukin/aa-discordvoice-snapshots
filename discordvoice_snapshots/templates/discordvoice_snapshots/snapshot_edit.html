@@ -37,7 +37,14 @@
                     <form method="post" style="display:inline;">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="remove_user">
-                        <input type="hidden" name="user_id" value="{{ su.user.id }}">
+                        <input type="hidden" name="snapshot_user_id" value="{{ su.id }}">
+                        <button class="btn btn-sm btn-link">Remove</button>
+                    </form>
+                {% else %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_user">
+                        <input type="hidden" name="snapshot_user_id" value="{{ su.id }}">
                         <button class="btn btn-sm btn-link">Remove</button>
                     </form>
                 {% endif %}
@@ -46,5 +53,33 @@
             <li>No users recorded</li>
         {% endfor %}
     </ul>
+
+    <h4 class="mt-4">Add Alliance Auth user</h4>
+    <form method="post" class="row g-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_user">
+        <div class="col-md-6">
+            <label class="form-label" for="user_id">Choose a user</label>
+            <select class="form-select" name="user_id" id="user_id">
+                <option value="">Choose a user...</option>
+                {% for user in all_users %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="username">Or type username</label>
+            <input class="form-control" type="text" name="username" id="username"
+                   list="auth-usernames" autocomplete="off">
+            <datalist id="auth-usernames">
+                {% for user in all_users %}
+                    <option value="{{ user.username }}"></option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-12">
+            <button class="btn btn-primary">Add user</button>
+        </div>
+    </form>
 </div>
 {% endblock %}

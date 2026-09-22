@@ -126,21 +126,21 @@ def snapshot_edit(request, snapshot_id):
             return redirect("discordvoice_snapshots:detail", snapshot.id)
 
         if action == "add_user":
-            username = request.POST.get("username")
-            if not username:
-                messages.error(request, "Username is required.")
+            user_id = request.POST.get("user_id")
+            username = request.POST.get("username", "").strip()
+            user = User.objects.filter(id=user_id).first() if user_id else None
+            if user is None and username:
+                user = User.objects.filter(username__iexact=username).first()
+            if user is None:
+                messages.error(request, "Select an Alliance Auth user or enter a valid username.")
             else:
-                try:
-                    user = User.objects.get(username=username)
-                    SnapshotUser.objects.get_or_create(snapshot=snapshot, user=user)
-                    log_action(
-                        user=request.user,
-                        action=f"Added user {username} to snapshot {snapshot_id}",
-                        new_value=username,
-                    )
-                    messages.success(request, f"User {username} added.")
-                except User.DoesNotExist:
-                    messages.error(request, "User not found.")
+                SnapshotUser.objects.get_or_create(snapshot=snapshot, user=user)
+                log_action(
+                    user=request.user,
+                    action=f"Added user {user.username} to snapshot {snapshot_id}",
+                    new_value=user.username,
+                )
+                messages.success(request, f"User {user.username} added.")
 
         elif action == "add_discord_user":
             discord_name = request.POST.get("discord_username")
@@ -177,13 +177,15 @@ def snapshot_edit(request, snapshot_id):
                     messages.error(request, "Discord user not found or not linked.")
 
         elif action == "remove_user":
-            user_id = request.POST.get("user_id")
-            if user_id:
-                SnapshotUser.objects.filter(snapshot=snapshot, user_id=user_id).delete()
+            snapshot_user_id = request.POST.get("snapshot_user_id")
+            if snapshot_user_id:
+                removed = SnapshotUser.objects.filter(
+                    snapshot=snapshot, id=snapshot_user_id
+                ).delete()[0]
                 log_action(
                     user=request.user,
-                    action=f"Removed user {user_id} from snapshot {snapshot_id}",
-                    old_value=user_id,
+                    action=f"Removed {removed} user record(s) from snapshot {snapshot_id}",
+                    old_value=snapshot_user_id,
                 )
                 messages.success(request, "User removed.")
             else:
@@ -220,7 +222,12 @@ def snapshot_edit(request, snapshot_id):
     return render(
         request,
         "discordvoice_snapshots/snapshot_edit.html",
-        {"snapshot": snapshot, "users": users},
+        {
+            "snapshot": snapshot,
+            "users": users,
+            "all_users": User.objects.order_by("username"),
+            "tags": SnapshotTag.objects.order_by("name"),
+        },
     )
 
 
