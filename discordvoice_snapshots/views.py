@@ -5,7 +5,6 @@ from django.conf import settings
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 
-from allianceauth.services.modules.discord import DiscordApi
 from allianceauth.services.modules.discord.models import DiscordUser as AA_DiscordUser
 
 from .models import Snapshot, SnapshotUser, AuditLog, SnapshotTag, Channel
@@ -293,13 +292,18 @@ def take_snapshot(request):
     if request.method == "POST":
         tag_id = request.POST.get("tag")
         tag = SnapshotTag.objects.filter(id=tag_id).first() if tag_id else None
-        api = DiscordApi()
         guild_id = getattr(settings, "DISCORD_GUILD_ID", None)
         if not guild_id:
             messages.error(request, "DISCORD_GUILD_ID is not configured.")
             return redirect("discordvoice_snapshots:list")
 
-        voice_states = api.get_guild_voice_states(guild_id) or []
+        try:
+            from .discord_api import get_guild_voice_states
+
+            voice_states = get_guild_voice_states(guild_id)
+        except RuntimeError as exc:
+            messages.error(request, str(exc))
+            return redirect("discordvoice_snapshots:list")
 
         # create a synthetic channel for multi-channel snapshot
         channel, _ = Channel.objects.get_or_create(
