@@ -11,3 +11,8 @@ def register_urls():
         namespace="discordvoice_snapshots",
         base_url=r"^discordvoice-snapshots/",
     )
+
+
+@hooks.register("discord_cogs_hook")
+def register_cogs():
+    return ["discordvoice_snapshots.cogs.voice_snapshots"]

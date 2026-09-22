@@ -7,7 +7,14 @@ from django.db.models import Q
 
 from allianceauth.services.modules.discord.models import DiscordUser as AA_DiscordUser
 
-from .models import Snapshot, SnapshotUser, AuditLog, SnapshotTag, Channel
+from .models import (
+    ActiveVoiceState,
+    Snapshot,
+    SnapshotUser,
+    AuditLog,
+    SnapshotTag,
+    Channel,
+)
 from .permissions import (
     admin_required,
     editor_required,
@@ -297,12 +304,17 @@ def take_snapshot(request):
             messages.error(request, "DISCORD_GUILD_ID is not configured.")
             return redirect("discordvoice_snapshots:list")
 
-        try:
-            from .discord_api import get_guild_voice_states
-
-            voice_states = get_guild_voice_states(guild_id)
-        except RuntimeError as exc:
-            messages.error(request, str(exc))
+        voice_states = list(
+            ActiveVoiceState.objects.filter(guild_id=str(guild_id)).values(
+                "discord_user_id", "discord_username"
+            )
+        )
+        if not voice_states:
+            messages.error(
+                request,
+                "No active Discord voice states are available. "
+                "Confirm the DiscordBot process is running and connected.",
+            )
             return redirect("discordvoice_snapshots:list")
 
         # create a synthetic channel for multi-channel snapshot
@@ -315,28 +327,13 @@ def take_snapshot(request):
             channel=channel,
             tag=tag,
             created_by=request.user,
-            scope="editor",
+            scope=Snapshot.AccessScope.SELF,
+            visibility=Snapshot.AccessScope.SELF,
         )
 
         for state in voice_states:
-            discord_id = None
-            discord_username = None
-            if isinstance(state, dict):
-                discord_id = str(
-                    state.get("user_id")
-                    or state.get("user", {}).get("id")
-                    or state.get("id")
-                )
-                discord_username = (
-                    state.get("username")
-                    or state.get("user", {}).get("username")
-                )
-            else:
-                discord_id = str(
-                    getattr(state, "user_id", None) or getattr(state, "id", None)
-                )
-                discord_username = getattr(state, "username", None)
-
+            discord_id = state["discord_user_id"]
+            discord_username = state["discord_username"]
             aa_user = None
             if discord_id:
                 du = (

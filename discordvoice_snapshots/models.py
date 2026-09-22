@@ -84,6 +84,23 @@ class SnapshotUser(models.Model):
         return f"{self.discord_username or self.discord_user_id} in {self.snapshot}"
 
 
+class ActiveVoiceState(models.Model):
+    guild_id = models.CharField(max_length=64)
+    discord_user_id = models.CharField(max_length=64)
+    discord_username = models.CharField(max_length=200, blank=True)
+    channel_id = models.CharField(max_length=64)
+    channel_name = models.CharField(max_length=255)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=("guild_id", "discord_user_id"),
+                name="unique_active_voice_user_per_guild",
+            )
+        ]
+
+
 class AuditLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=255)
