@@ -1,5 +1,6 @@
 from allianceauth.services.hooks import MenuItemHook
 from allianceauth import hooks
+from django.urls import NoReverseMatch
 
 
 class VoiceSnapshotMenu(MenuItemHook):
@@ -19,7 +20,11 @@ class VoiceSnapshotMenu(MenuItemHook):
             or request.user.has_perm("discordvoice_snapshots.change_snapshot")
             or request.user.has_perm("discordvoice_snapshots.add_snapshot")
         ):
-            return super().render(request)
+            try:
+                return super().render(request)
+            except NoReverseMatch:
+                # A missing host URL registration must not break the AA menu.
+                return []
         return []
 
 

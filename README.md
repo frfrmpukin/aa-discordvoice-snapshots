@@ -70,6 +70,8 @@ urlpatterns = [
 
 The URL registration is required because installing a Python package cannot
 modify the host Alliance Auth project's URL configuration automatically.
+If the URL is not registered yet, the navigation hook will remain hidden rather
+than interrupting the rest of the Alliance Auth menu.
 
 Also activate periodic tasks
 ```
