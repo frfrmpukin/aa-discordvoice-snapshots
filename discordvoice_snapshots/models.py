@@ -7,6 +7,8 @@ User = get_user_model()
 class Channel(models.Model):
     name = models.CharField(max_length=255)
     channel_type = models.CharField(max_length=50, blank=True)
+    discord_guild_id = models.CharField(max_length=64, blank=True)
+    discord_channel_id = models.CharField(max_length=64, blank=True)
 
     def __str__(self):
         return self.name
@@ -73,6 +75,8 @@ class SnapshotUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     discord_user_id = models.CharField(max_length=64, null=True, blank=True)
     discord_username = models.CharField(max_length=200, null=True, blank=True)
+    voice_channel_name = models.CharField(max_length=255, blank=True)
+    voice_channel_id = models.CharField(max_length=64, blank=True)
     is_visible_to_owner = models.BooleanField(default=True)
 
     class Meta:

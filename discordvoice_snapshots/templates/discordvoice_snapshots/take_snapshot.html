@@ -7,6 +7,22 @@
     <form method="post">
         {% csrf_token %}
         <div class="mb-3">
+            <label class="form-label">Capture scope</label>
+            <select name="channel" class="form-select">
+                <option value="all">Entire server (all active voice channels)</option>
+                {% for channel in channels %}
+                    <option value="{{ channel.channel_id }}">
+                        {{ channel.channel_name }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if not channels %}
+                <div class="form-text text-warning">
+                    No users are currently in a voice channel.
+                </div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
             <label class="form-label">Tag</label>
             <select name="tag" class="form-select">
                 <option value="">No Tag</option>

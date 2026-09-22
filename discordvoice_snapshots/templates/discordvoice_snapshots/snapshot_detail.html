@@ -18,6 +18,9 @@
                 {% else %}
                     {{ su.discord_username|default:su.discord_user_id }}
                 {% endif %}
+                {% if su.voice_channel_name %}
+                    — {{ su.voice_channel_name }}
+                {% endif %}
             </li>
         {% empty %}
             <li>No users recorded</li>

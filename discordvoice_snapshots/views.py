@@ -306,22 +306,51 @@ def take_snapshot(request):
 
         voice_states = list(
             ActiveVoiceState.objects.filter(guild_id=str(guild_id)).values(
-                "discord_user_id", "discord_username"
+                "discord_user_id",
+                "discord_username",
+                "channel_id",
+                "channel_name",
             )
         )
         if not voice_states:
             messages.error(
                 request,
-                "No active Discord voice states are available. "
-                "Confirm the DiscordBot process is running and connected.",
+                "There are currently no users in any monitored Discord voice "
+                "channel. Join a voice channel before taking a snapshot.",
             )
             return redirect("discordvoice_snapshots:list")
 
-        # create a synthetic channel for multi-channel snapshot
-        channel, _ = Channel.objects.get_or_create(
-            name="Multiple Channels",
-            channel_type="voice",
-        )
+        selected_channel = request.POST.get("channel", "all")
+        if selected_channel != "all":
+            voice_states = [
+                state for state in voice_states
+                if state["channel_id"] == selected_channel
+            ]
+            if not voice_states:
+                messages.error(
+                    request,
+                    "That voice channel is empty. Choose another channel or "
+                    "take a server-wide snapshot.",
+                )
+                return redirect("discordvoice_snapshots:take_snapshot")
+
+            channel = Channel.objects.get_or_create(
+                discord_guild_id=str(guild_id),
+                discord_channel_id=selected_channel,
+                defaults={
+                    "name": voice_states[0]["channel_name"],
+                    "channel_type": "voice",
+                },
+            )[0]
+        else:
+            channel = Channel.objects.get_or_create(
+                discord_guild_id=str(guild_id),
+                discord_channel_id="",
+                defaults={
+                    "name": "Server-wide",
+                    "channel_type": "voice",
+                },
+            )[0]
 
         snapshot = Snapshot.objects.create(
             channel=channel,
@@ -348,7 +377,11 @@ def take_snapshot(request):
                 snapshot=snapshot,
                 user=aa_user,
                 discord_user_id=discord_id,
-                defaults={"discord_username": discord_username},
+                defaults={
+                    "discord_username": discord_username,
+                    "voice_channel_id": state["channel_id"],
+                    "voice_channel_name": state["channel_name"],
+                },
             )
 
         AuditLog.objects.create(
@@ -359,11 +392,19 @@ def take_snapshot(request):
         messages.success(request, "Snapshot taken.")
         return redirect("discordvoice_snapshots:detail", snapshot.id)
 
-    tags = SnapshotTag.objects.all()
+    guild_id = getattr(settings, "DISCORD_GUILD_ID", None)
+    channels = (
+        ActiveVoiceState.objects.filter(guild_id=str(guild_id))
+        .values("channel_id", "channel_name")
+        .distinct()
+        .order_by("channel_name")
+        if guild_id
+        else []
+    )
     return render(
         request,
         "discordvoice_snapshots/take_snapshot.html",
-        {"tags": tags},
+        {"tags": SnapshotTag.objects.all(), "channels": channels},
     )
 
 

@@ -5,6 +5,13 @@ managing, auditing, and cleaning up snapshots. It integrates directly with
 Alliance Auth and supports advanced editing features such as autocomplete,
 Discord username lookup, and bulk user removal.
 
+Snapshot capture supports either one currently occupied voice channel or a
+server-wide capture. Server-wide snapshots retain each member's channel name,
+and an empty guild produces a clear "no users in any monitored voice channel"
+message instead of creating an empty or synthetic snapshot. Capture and
+visibility access continue to follow the module's Alliance Auth permissions
+and groups.
+
 The Alliance Auth DiscordBot package is a required dependency for live voice
 snapshots. It supplies the Discord Gateway process and loads this module's
 voice-state cog through Alliance Auth's `discord_cogs_hook`.
