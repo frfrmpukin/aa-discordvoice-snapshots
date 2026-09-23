@@ -1,5 +1,13 @@
 from django.contrib import admin
-from .models import Channel, Snapshot, SnapshotUser, AuditLog, SnapshotTag, RetentionPolicy
+from .models import (
+    Channel,
+    Snapshot,
+    SnapshotUser,
+    AuditLog,
+    SnapshotTag,
+    SnapshotAutomationSettings,
+    RetentionPolicy,
+)
 
 
 @admin.register(Channel)
@@ -35,6 +43,17 @@ class AuditLogAdmin(admin.ModelAdmin):
 class SnapshotTagAdmin(admin.ModelAdmin):
     list_display = ("name",)
     search_fields = ("name",)
+
+
+@admin.register(SnapshotAutomationSettings)
+class SnapshotAutomationSettingsAdmin(admin.ModelAdmin):
+    list_display = ("tag", "enabled", "updated_at")
+
+    def has_add_permission(self, request):
+        return not SnapshotAutomationSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(RetentionPolicy)
