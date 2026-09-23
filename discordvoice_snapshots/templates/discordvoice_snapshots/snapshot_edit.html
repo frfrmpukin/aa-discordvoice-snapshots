@@ -1,4 +1,4 @@
-{% extends "allianceauth/base.html" %}
+{% extends "allianceauth/base-bs5.html" %}
 {% block title %}Edit Snapshot{% endblock %}
 
 {% block content %}
@@ -7,6 +7,7 @@
 
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="action" value="save">
         <div class="mb-3">
             <label class="form-label">Tag</label>
             <select name="tag" class="form-select">
@@ -19,29 +20,66 @@
             </select>
         </div>
 
-        <h4>Users</h4>
-        <ul>
-            {% for su in users %}
-                <li>
-                    {% if su.user %}
-                        {{ su.user.username }}
-                    {% else %}
-                        {{ su.discord_username|default:su.discord_user_id }}
-                    {% endif %}
-                    {% if su.user %}
-                        <form method="post" style="display:inline;">
-                            {% csrf_token %}
-                            <input type="hidden" name="action" value="remove_user">
-                            <input type="hidden" name="user_id" value="{{ su.user.id }}">
-                            <button class="btn btn-sm btn-link">Remove</button>
-                        </form>
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-
         <button class="btn btn-success">Save</button>
         <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
+    </form>
+
+    <h4 class="mt-4">Users</h4>
+    <ul>
+        {% for su in users %}
+            <li>
+                {% if su.user %}
+                    {{ su.user.username }}
+                {% else %}
+                    {{ su.discord_username|default:su.discord_user_id }}
+                {% endif %}
+                {% if su.user %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_user">
+                        <input type="hidden" name="snapshot_user_id" value="{{ su.id }}">
+                        <button class="btn btn-sm btn-link">Remove</button>
+                    </form>
+                {% else %}
+                    <form method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_user">
+                        <input type="hidden" name="snapshot_user_id" value="{{ su.id }}">
+                        <button class="btn btn-sm btn-link">Remove</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No users recorded</li>
+        {% endfor %}
+    </ul>
+
+    <h4 class="mt-4">Add Alliance Auth user</h4>
+    <form method="post" class="row g-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_user">
+        <div class="col-md-6">
+            <label class="form-label" for="user_id">Choose a user</label>
+            <select class="form-select" name="user_id" id="user_id">
+                <option value="">Choose a user...</option>
+                {% for user in all_users %}
+                    <option value="{{ user.id }}">{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label" for="username">Or type username</label>
+            <input class="form-control" type="text" name="username" id="username"
+                   list="auth-usernames" autocomplete="off">
+            <datalist id="auth-usernames">
+                {% for user in all_users %}
+                    <option value="{{ user.username }}"></option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="col-12">
+            <button class="btn btn-primary">Add user</button>
+        </div>
     </form>
 </div>
 {% endblock %}

@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import permission_required
 
 from allianceauth.services.modules.discord.models import DiscordUser
 from .models import Snapshot, SnapshotUser, AuditLog
+from .utils_cleanup import cleanup_old_audit_logs
 
 User = get_user_model()
 
@@ -12,6 +13,11 @@ User = get_user_model()
 @require_GET
 @permission_required("discordvoice_snapshots.view_snapshot", raise_exception=True)
 def api_snapshots(request):
+    page = max(1, int(request.GET.get("page", 1)))
+    page_size = min(100, max(1, int(request.GET.get("page_size", 25))))
+
+    snapshots = Snapshot.objects.select_related("channel", "tag").order_by("-timestamp")
+    total = snapshots.count()
     data = [
         {
             "id": s.id,
@@ -19,9 +25,9 @@ def api_snapshots(request):
             "timestamp": s.timestamp,
             "tag": s.tag.name if s.tag else None,
         }
-        for s in Snapshot.objects.select_related("channel", "tag")
+        for s in snapshots[(page - 1) * page_size : page * page_size]
     ]
-    return JsonResponse({"snapshots": data})
+    return JsonResponse({"snapshots": data, "page": page, "page_size": page_size, "total": total})
 
 
 @require_GET
@@ -68,6 +74,19 @@ def api_user_search(request):
     users = User.objects.filter(username__icontains=q)[:20]
     data = [{"id": u.id, "username": u.username} for u in users]
     return JsonResponse({"results": data})
+
+
+@require_GET
+@permission_required("discordvoice_snapshots.view_auditlog", raise_exception=True)
+def api_audit_log_trim(request):
+    days = request.GET.get("days", "90")
+    try:
+        days = int(days)
+    except ValueError:
+        return JsonResponse({"error": "Invalid days value"}, status=400)
+
+    trimmed = cleanup_old_audit_logs(days=days, user=request.user)
+    return JsonResponse({"trimmed": trimmed, "days": days})
 
 
 @require_GET

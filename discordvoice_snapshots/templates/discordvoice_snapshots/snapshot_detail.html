@@ -1,4 +1,4 @@
-{% extends "allianceauth/base.html" %}
+{% extends "allianceauth/base-bs5.html" %}
 {% block title %}Snapshot Detail{% endblock %}
 
 {% block content %}
@@ -17,6 +17,9 @@
                     {{ su.user.username }}
                 {% else %}
                     {{ su.discord_username|default:su.discord_user_id }}
+                {% endif %}
+                {% if su.voice_channel_name %}
+                    — {{ su.voice_channel_name }}
                 {% endif %}
             </li>
         {% empty %}

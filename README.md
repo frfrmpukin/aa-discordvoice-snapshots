@@ -5,31 +5,46 @@ managing, auditing, and cleaning up snapshots. It integrates directly with
 Alliance Auth and supports advanced editing features such as autocomplete,
 Discord username lookup, and bulk user removal.
 
+Snapshot capture supports either one currently occupied voice channel or a
+server-wide capture. Server-wide snapshots retain each member's channel name,
+and an empty guild produces a clear "no users in any monitored voice channel"
+message instead of creating an empty or synthetic snapshot. Capture and
+visibility access continue to follow the module's Alliance Auth permissions
+and groups.
+
+The Alliance Auth DiscordBot package is a required dependency for live voice
+snapshots. It supplies the Discord Gateway process and loads this module's
+voice-state cog through Alliance Auth's `discord_cogs_hook`.
+
 ---
 
 ## Features
 
 ### Snapshot Management
 - Create snapshots manually or via periodic Celery tasks
-- View snapshot details and user lists
-- Edit snapshots (add/remove users)
+- View snapshot details and user lists with privacy-aware filtering
+- Edit snapshots (add/remove users, tags)
 - Bulk remove users
 - Delete snapshots safely with confirmation
+- Track creator metadata and retention policies
 
 ### Advanced Editing Tools
 - AA username autocomplete
 - Discord username lookup (editor-only)
 - Bulk user removal via checkbox UI
+- Snapshot privacy and retention controls for admins
 
 ### Admin Tools
 - Snapshot cleanup (old snapshots, empty snapshots)
 - Audit log viewer
+- Retention policy configuration for snapshots and logs
 - Admin console navigation entry
 
 ### API Endpoints
-- Snapshot list
+- Snapshot list with pagination and sorting
 - User snapshot history
 - Audit log
+- Audit log trim endpoint
 - Username autocomplete
 - Discord username search (editor-only)
 
@@ -41,11 +56,23 @@ Discord username lookup, and bulk user removal.
 ```
 pip install git+https://github.com/frfrmpukin/aa-discordvoice-snapshots
 ```
+
+This release supports Alliance Auth 5.3.x and requires `django-sri` 0.8.x.
+Do not upgrade `django-sri` to 1.x with Alliance Auth 5.3.x: Alliance Auth's
+5.3 templates use the `sri_static` tag, which was removed in `django-sri` 1.0.
+If the host already has Alliance Auth installed, install the module without
+replacing the host's dependency set and verify that `django-sri` remains below
+1.0.
 ### Edit local.py
 Add to INSTALLED_APPS
 ```
 INSTALLED_APPS += ["discordvoice_snapshots"]
 ```
+
+The module registers its URL patterns through Alliance Auth's `url_hook`
+extension mechanism. No manual edit to the generated project URL file is
+required.
+
 Also activate periodic tasks
 ```
 CELERYBEAT_SCHEDULE["snapshot_every_10min"] = {
@@ -57,11 +84,27 @@ CELERYBEAT_SCHEDULE["cleanup_daily"] = {
     "task": "discordvoice_snapshots.tasks.periodic_cleanup",
     "schedule": crontab(hour=3, minute=0),
 }
+
+CELERYBEAT_SCHEDULE["retention_daily"] = {
+    "task": "discordvoice_snapshots.tasks.periodic_retention_cleanup",
+    "schedule": crontab(hour=4, minute=0),
+}
 ```
 ### Migrate to add database tables
 ```
 python /home/allianceserver/myauth/manage.py migrate
 ```
+
+The DiscordBot package must also be installed and configured according to its
+documentation:
+
+```bash
+pip install git+https://github.com/Solar-Helix-Independent-Transport/allianceauth-discordbot.git
+```
+
+Start its bot process (commonly with `python manage.py run_authbot`) and enable
+the Discord Developer Portal **Guild Voice States** intent. The bot must be
+connected to the target guild before taking snapshots.
 ### Collect Static Files
 ```
 python /home/allianceserver/myauth/manage.py collectstatic --noinput
@@ -103,6 +146,7 @@ Can:
 - `All Editor actions`
 - `Delete snapshots`
 - `View audit logs`
+- `Manage retention and cleanup`
 - `Access admin console`
 Requires Django permissions:
 - `All Editor permissions`
@@ -113,6 +157,12 @@ Requires Django permissions:
 
 ### SuperAdmin
 Alliance Auth superusers automatically bypass all permission checks.
+
+### Privacy Model
+- Standard users can view only their own membership in a snapshot unless they have editor or admin role permissions.
+- Editors can review snapshots they are authorized to manage.
+- Admins can access the full audit and retention tools.
+- Retention windows can be configured independently for snapshots and audit logs.
 
 ### Automatic Group Setup
 A management command is included:
