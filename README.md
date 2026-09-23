@@ -12,7 +12,7 @@ message instead of creating an empty or synthetic snapshot. Capture and
 visibility access continue to follow the module's Alliance Auth permissions
 and groups.
 
-The Alliance Auth DiscordBot package is a required dependency for live voice
+Alliance Auth includes the DiscordBot integration used for live voice
 snapshots. It supplies the Discord Gateway process and loads this module's
 voice-state cog through Alliance Auth's `discord_cogs_hook`.
 
@@ -95,16 +95,12 @@ CELERYBEAT_SCHEDULE["retention_daily"] = {
 python /home/allianceserver/myauth/manage.py migrate
 ```
 
-The DiscordBot package must also be installed and configured according to its
-documentation:
-
-```bash
-pip install git+https://github.com/Solar-Helix-Independent-Transport/allianceauth-discordbot.git
-```
-
-Start its bot process (commonly with `python manage.py run_authbot`) and enable
-the Discord Developer Portal **Guild Voice States** intent. The bot must be
-connected to the target guild before taking snapshots.
+Enable the Alliance Auth DiscordBot app in `INSTALLED_APPS` according to the
+Alliance Auth installation documentation, then configure and start its bot
+process (commonly with `python manage.py run_authbot`). Do not install the
+separate `allianceauth-discordbot` GitHub package. Enable the Discord Developer
+Portal **Guild Voice States** intent, and ensure the bot is connected to the
+target guild before taking snapshots.
 ### Collect Static Files
 ```
 python /home/allianceserver/myauth/manage.py collectstatic --noinput
