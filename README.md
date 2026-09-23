@@ -12,9 +12,11 @@ message instead of creating an empty or synthetic snapshot. Capture and
 visibility access continue to follow the module's Alliance Auth permissions
 and groups.
 
-Alliance Auth includes the DiscordBot integration used for live voice
-snapshots. It supplies the Discord Gateway process and loads this module's
-voice-state cog through Alliance Auth's `discord_cogs_hook`.
+The standalone
+[Alliance Auth DiscordBot package](https://github.com/Solar-Helix-Independent-Transport/allianceauth-discordbot)
+is required for live voice snapshots. It extends Alliance Auth with the
+Discord Gateway process and loads this module's voice-state cog through
+Alliance Auth's `discord_cogs_hook`.
 
 ---
 
@@ -69,6 +71,18 @@ Add to INSTALLED_APPS
 INSTALLED_APPS += ["discordvoice_snapshots"]
 ```
 
+Install the required DiscordBot extension in the same virtual environment:
+
+```bash
+pip install git+https://github.com/Solar-Helix-Independent-Transport/allianceauth-discordbot.git
+```
+
+Enable its Django app as documented by the extension:
+
+```python
+INSTALLED_APPS += ["aadiscordbot"]
+```
+
 The module registers its URL patterns through Alliance Auth's `url_hook`
 extension mechanism. No manual edit to the generated project URL file is
 required.
@@ -95,12 +109,10 @@ CELERYBEAT_SCHEDULE["retention_daily"] = {
 python /home/allianceserver/myauth/manage.py migrate
 ```
 
-Enable the Alliance Auth DiscordBot app in `INSTALLED_APPS` according to the
-Alliance Auth installation documentation, then configure and start its bot
-process (commonly with `python manage.py run_authbot`). Do not install the
-separate `allianceauth-discordbot` GitHub package. Enable the Discord Developer
-Portal **Guild Voice States** intent, and ensure the bot is connected to the
-target guild before taking snapshots.
+Configure and start the DiscordBot process (commonly with
+`python manage.py run_authbot`). Enable the Discord Developer Portal **Guild
+Voice States** intent, and ensure the bot is connected to the target guild
+before taking snapshots.
 ### Collect Static Files
 ```
 python /home/allianceserver/myauth/manage.py collectstatic --noinput
