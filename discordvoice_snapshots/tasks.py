@@ -1,15 +1,17 @@
 from celery import shared_task
 from django.utils import timezone
 
-from .models import Channel, Snapshot
+from .models import Channel, Snapshot, SnapshotAutomationSettings
 from .utils_cleanup import cleanup_old_snapshots, cleanup_empty_snapshots, cleanup_old_audit_logs, apply_retention_policy
 
 
 @shared_task
 def periodic_snapshot():
     now = timezone.now()
+    settings = SnapshotAutomationSettings.objects.select_related("tag").first()
+    tag = settings.tag if settings and settings.enabled else None
     for channel in Channel.objects.all():
-        Snapshot.objects.create(channel=channel)
+        Snapshot.objects.create(channel=channel, tag=tag)
     return f"Periodic snapshot created at {now}"
 
 

@@ -21,6 +21,28 @@ class SnapshotTag(models.Model):
         return self.name
 
 
+class SnapshotAutomationSettings(models.Model):
+    tag = models.ForeignKey(
+        SnapshotTag,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="automatic_snapshot_settings",
+    )
+    enabled = models.BooleanField(
+        default=True,
+        help_text="Use the selected tag for snapshots created by the periodic task.",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Automatic Snapshot Settings"
+        verbose_name_plural = "Automatic Snapshot Settings"
+
+    def __str__(self):
+        return "Automatic Snapshot Settings"
+
+
 class Snapshot(models.Model):
     class AccessScope(models.TextChoices):
         SELF = "self", "Self"

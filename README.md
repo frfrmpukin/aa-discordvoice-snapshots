@@ -104,6 +104,12 @@ CELERYBEAT_SCHEDULE["retention_daily"] = {
     "schedule": crontab(hour=4, minute=0),
 }
 ```
+
+Automatic snapshot scheduling remains configured through `CELERYBEAT_SCHEDULE`
+in `local.py`. The tag applied to scheduled snapshots is managed in Django
+admin under **Discord Voice Snapshots → Automatic Snapshot Settings**. The
+initial migration creates and selects the **Automatic Snapshot** tag; admins
+can replace it with any existing snapshot tag or disable automatic tagging.
 ### Migrate to add database tables
 ```
 python /home/allianceserver/myauth/manage.py migrate
