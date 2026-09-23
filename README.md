@@ -56,6 +56,13 @@ voice-state cog through Alliance Auth's `discord_cogs_hook`.
 ```
 pip install git+https://github.com/frfrmpukin/aa-discordvoice-snapshots
 ```
+
+This release supports Alliance Auth 5.3.x and requires `django-sri` 0.8.x.
+Do not upgrade `django-sri` to 1.x with Alliance Auth 5.3.x: Alliance Auth's
+5.3 templates use the `sri_static` tag, which was removed in `django-sri` 1.0.
+If the host already has Alliance Auth installed, install the module without
+replacing the host's dependency set and verify that `django-sri` remains below
+1.0.
 ### Edit local.py
 Add to INSTALLED_APPS
 ```
