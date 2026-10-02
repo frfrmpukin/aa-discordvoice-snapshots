@@ -59,9 +59,10 @@ Alliance Auth's `discord_cogs_hook`.
 pip install git+https://github.com/frfrmpukin/aa-discordvoice-snapshots
 ```
 
-This release supports Alliance Auth 5.3.x and requires `django-sri` 0.8.x.
-Do not upgrade `django-sri` to 1.x with Alliance Auth 5.3.x: Alliance Auth's
-5.3 templates use the `sri_static` tag, which was removed in `django-sri` 1.0.
+This release supports Alliance Auth 5.3.x and 5.4.x with Django 5.2, and
+requires `django-sri` 0.8.x. Do not upgrade to `django-sri` 1.x: its
+`sri_static` template tag was removed, and Alliance Auth 5.3/5.4 templates
+still use it.
 If the host already has Alliance Auth installed, install the module without
 replacing the host's dependency set and verify that `django-sri` remains below
 1.0.
