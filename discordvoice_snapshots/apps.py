@@ -5,6 +5,7 @@ from . import __version__
 class DiscordVoiceSnapshotsConfig(AppConfig):
     name = "discordvoice_snapshots"
     verbose_name = f"Discord Voice Snapshots ({__version__})"
+    default_auto_field = "django.db.models.BigAutoField"
 
     def ready(self):
         import discordvoice_snapshots.auth_hooks  # noqa: F401
