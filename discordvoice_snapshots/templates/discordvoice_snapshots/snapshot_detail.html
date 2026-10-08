@@ -2,36 +2,51 @@
 {% block title %}Snapshot Detail{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Snapshot Detail</h2>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Snapshot Detail</h2>
 
-    <p><strong>Channel:</strong> {{ snapshot.channel.name }}</p>
-    <p><strong>Timestamp:</strong> {{ snapshot.timestamp }}</p>
-    <p><strong>Tag:</strong> {{ snapshot.tag.name|default:"None" }}</p>
+    <div class="card mb-4">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Channel</dt>
+                <dd class="col-sm-9">{{ snapshot.channel.name }}</dd>
+                <dt class="col-sm-3">Timestamp</dt>
+                <dd class="col-sm-9">{{ snapshot.timestamp }}</dd>
+                <dt class="col-sm-3">Tag</dt>
+                <dd class="col-sm-9 mb-0">{{ snapshot.tag.name|default:"None" }}</dd>
+            </dl>
+        </div>
+    </div>
 
-    <h4>Users</h4>
-    <ul>
-        {% for su in users %}
-            <li>
-                {% if su.user %}
-                    {{ su.user.username }}
-                {% else %}
-                    {{ su.discord_username|default:su.discord_user_id }}
-                {% endif %}
-                {% if su.voice_channel_name %}
-                    — {{ su.voice_channel_name }}
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>No users recorded</li>
-        {% endfor %}
-    </ul>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="h5 mb-0">Users</h3>
+        </div>
+        <ul class="list-group list-group-flush">
+            {% for su in users %}
+                <li class="list-group-item">
+                    {% if su.user %}
+                        {{ su.user.username }}
+                    {% else %}
+                        {{ su.discord_username|default:su.discord_user_id }}
+                    {% endif %}
+                    {% if su.voice_channel_name %}
+                        <span class="text-body-secondary">— {{ su.voice_channel_name }}</span>
+                    {% endif %}
+                </li>
+            {% empty %}
+                <li class="list-group-item text-body-secondary">No users recorded</li>
+            {% endfor %}
+        </ul>
+    </div>
 
-    <a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-primary">Edit</a>
-    <form method="post" action="{% url 'discordvoice_snapshots:delete' snapshot.id %}" style="display:inline;">
-        {% csrf_token %}
-        <button class="btn btn-danger">Delete</button>
-    </form>
-    <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary">Back</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'discordvoice_snapshots:edit' snapshot.id %}" class="btn btn-primary">Edit</a>
+        <form method="post" action="{% url 'discordvoice_snapshots:delete' snapshot.id %}" class="mb-0">
+            {% csrf_token %}
+            <button class="btn btn-outline-danger">Delete</button>
+        </form>
+        <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-outline-secondary">Back</a>
+    </div>
 </div>
 {% endblock %}

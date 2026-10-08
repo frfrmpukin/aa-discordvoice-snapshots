@@ -2,37 +2,44 @@
 {% block title %}Take Snapshot{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Take Snapshot</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label class="form-label">Capture scope</label>
-            <select name="channel" class="form-select">
-                <option value="all">Entire server (all active voice channels)</option>
-                {% for channel in channels %}
-                    <option value="{{ channel.channel_id }}">
-                        {{ channel.channel_name }}
-                    </option>
-                {% endfor %}
-            </select>
-            {% if not channels %}
-                <div class="form-text text-warning">
-                    No users are currently in a voice channel.
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Take Snapshot</h2>
+
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label" for="channel">Capture scope</label>
+                    <select name="channel" id="channel" class="form-select">
+                        <option value="all">Entire server (all active voice channels)</option>
+                        {% for channel in channels %}
+                            <option value="{{ channel.channel_id }}">
+                                {{ channel.channel_name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if not channels %}
+                        <div class="form-text">
+                            No users are currently in a voice channel.
+                        </div>
+                    {% endif %}
                 </div>
-            {% endif %}
+                <div class="mb-3">
+                    <label class="form-label" for="tag">Tag</label>
+                    <select name="tag" id="tag" class="form-select">
+                        <option value="">No Tag</option>
+                        {% for tag in tags %}
+                            <option value="{{ tag.id }}">{{ tag.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary">Take Snapshot</button>
+                    <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-outline-secondary">Back</a>
+                </div>
+            </form>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Tag</label>
-            <select name="tag" class="form-select">
-                <option value="">No Tag</option>
-                {% for tag in tags %}
-                    <option value="{{ tag.id }}">{{ tag.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <button class="btn btn-primary">Take Snapshot</button>
-        <a href="{% url 'discordvoice_snapshots:list' %}" class="btn btn-secondary">Back</a>
-    </form>
+    </div>
 </div>
 {% endblock %}
