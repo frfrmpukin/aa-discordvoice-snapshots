@@ -2,61 +2,69 @@
 {% block title %}Snapshots{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Snapshots</h2>
-    <a href="{% url 'discordvoice_snapshots:take_snapshot' %}" class="btn btn-primary mb-3">
-        Take Snapshot
-    </a>
-
-    <div class="mb-3">
-        <span>Sort by:</span>
-        <a href="?order_by=-timestamp" class="btn btn-sm btn-outline-secondary">Newest</a>
-        <a href="?order_by=timestamp" class="btn btn-sm btn-outline-secondary">Oldest</a>
-        <a href="?order_by=channel" class="btn btn-sm btn-outline-secondary">Channel</a>
-        <a href="?order_by=tag" class="btn btn-sm btn-outline-secondary">Tag</a>
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <h2 class="mb-0">Snapshots</h2>
+        <a href="{% url 'discordvoice_snapshots:take_snapshot' %}" class="btn btn-primary">
+            Take Snapshot
+        </a>
     </div>
 
-    <table class="table table-striped table-hover">
-        <thead>
-            <tr>
-                <th>Channel</th>
-                <th>Timestamp</th>
-                <th>Tag</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in snapshots %}
-            <tr>
-                <td>{{ s.channel.name }}</td>
-                <td>{{ s.timestamp }}</td>
-                <td>{{ s.tag.name|default:"None" }}</td>
-                <td>
-                    <a href="{% url 'discordvoice_snapshots:detail' s.id %}" class="btn btn-sm btn-primary">
-                        View
-                    </a>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4">No snapshots</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="card mb-4">
+        <div class="card-body d-flex align-items-center gap-2 flex-wrap">
+            <span class="fw-semibold">Sort by:</span>
+            <a href="?order_by=-timestamp" class="btn btn-sm btn-outline-secondary">Newest</a>
+            <a href="?order_by=timestamp" class="btn btn-sm btn-outline-secondary">Oldest</a>
+            <a href="?order_by=channel" class="btn btn-sm btn-outline-secondary">Channel</a>
+            <a href="?order_by=tag" class="btn btn-sm btn-outline-secondary">Tag</a>
+        </div>
+    </div>
 
-    {% if total > page_size %}
-    <nav>
-        <ul class="pagination">
-            {% if has_previous %}
-            <li class="page-item"><a class="page-link" href="?page={{ page|add:'-1' }}&order_by={{ current_order }}">Previous</a></li>
-            {% endif %}
-            <li class="page-item disabled"><span class="page-link">Page {{ page }}</span></li>
-            {% if has_next %}
-            <li class="page-item"><a class="page-link" href="?page={{ page|add:'1' }}&order_by={{ current_order }}">Next</a></li>
-            {% endif %}
-        </ul>
-    </nav>
-    {% endif %}
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Channel</th>
+                        <th>Timestamp</th>
+                        <th>Tag</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in snapshots %}
+                    <tr>
+                        <td>{{ s.channel.name }}</td>
+                        <td>{{ s.timestamp }}</td>
+                        <td>{{ s.tag.name|default:"None" }}</td>
+                        <td>
+                            <a href="{% url 'discordvoice_snapshots:detail' s.id %}" class="btn btn-sm btn-outline-primary">
+                                View
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center text-body-secondary py-4">No snapshots</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if total > page_size %}
+        <nav class="p-3" aria-label="Snapshot pages">
+            <ul class="pagination mb-0">
+                {% if has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page|add:'-1' }}&order_by={{ current_order }}">Previous</a></li>
+                {% endif %}
+                <li class="page-item disabled"><span class="page-link">Page {{ page }}</span></li>
+                {% if has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page|add:'1' }}&order_by={{ current_order }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

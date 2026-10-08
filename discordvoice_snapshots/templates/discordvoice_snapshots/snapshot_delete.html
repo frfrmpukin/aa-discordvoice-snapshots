@@ -2,13 +2,17 @@
 {% block title %}Delete Snapshot{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Delete Snapshot</h2>
-    <p>Are you sure you want to delete snapshot {{ snapshot }}?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button class="btn btn-danger">Yes, delete</button>
-        <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-secondary">Cancel</a>
-    </form>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Delete Snapshot</h2>
+    <div class="card">
+        <div class="card-body">
+            <p>Are you sure you want to delete snapshot {{ snapshot }}?</p>
+            <form method="post" class="d-flex gap-2 flex-wrap">
+                {% csrf_token %}
+                <button class="btn btn-outline-danger">Yes, delete</button>
+                <a href="{% url 'discordvoice_snapshots:detail' snapshot.id %}" class="btn btn-outline-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

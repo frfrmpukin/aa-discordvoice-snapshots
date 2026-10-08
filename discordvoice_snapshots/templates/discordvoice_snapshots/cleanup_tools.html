@@ -2,55 +2,80 @@
 {% block title %}Snapshot Cleanup{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2>Snapshot Cleanup Tools</h2>
-    <hr>
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">Snapshot Cleanup Tools</h2>
 
-    <h4>Retention Policy</h4>
-    <form method="post" class="mb-4">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="save_policy">
-        <div class="mb-3">
-            <label class="form-label">Snapshot retention (days)</label>
-            <input type="number" name="snapshot_days" class="form-control" value="{{ policy.snapshot_days }}" min="0">
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="h5 mb-0">Retention Policy</h3>
         </div>
-        <div class="mb-3">
-            <label class="form-label">Audit log retention (days)</label>
-            <input type="number" name="audit_days" class="form-control" value="{{ policy.audit_days }}" min="0">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="save_policy">
+                <div class="mb-3">
+                    <label class="form-label" for="snapshot_days">Snapshot retention (days)</label>
+                    <input type="number" id="snapshot_days" name="snapshot_days" class="form-control" value="{{ policy.snapshot_days }}" min="0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="audit_days">Audit log retention (days)</label>
+                    <input type="number" id="audit_days" name="audit_days" class="form-control" value="{{ policy.audit_days }}" min="0">
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" name="enabled" id="enabled" {% if policy.enabled %}checked{% endif %}>
+                    <label class="form-check-label" for="enabled">Retention policy enabled</label>
+                </div>
+                <button class="btn btn-primary">Save retention policy</button>
+            </form>
         </div>
-        <div class="form-check mb-3">
-            <input class="form-check-input" type="checkbox" name="enabled" {% if policy.enabled %}checked{% endif %}>
-            <label class="form-check-label">Retention policy enabled</label>
-        </div>
-        <button class="btn btn-primary">Save retention policy</button>
-    </form>
+    </div>
 
-    <h4>Delete Old Snapshots</h4>
-    <form method="post" class="mb-4">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="cleanup_old">
-        <div class="input-group">
-            <input type="number" name="days" class="form-control" value="30" min="1">
-            <button class="btn btn-danger">Delete Older Than X Days</button>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="h5 mb-0">Delete Old Snapshots</h3>
         </div>
-    </form>
-
-    <h4>Delete Empty Snapshots</h4>
-    <form method="post" class="mb-4">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="cleanup_empty">
-        <button class="btn btn-warning">Delete Snapshots With No Users</button>
-    </form>
-
-    <h4>Delete Old Audit Log Entries</h4>
-    <form method="post" class="mb-4">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="cleanup_audit">
-        <div class="input-group">
-            <input type="number" name="audit_days" class="form-control" value="90" min="1">
-            <button class="btn btn-outline-danger">Delete Older Than X Days</button>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cleanup_old">
+                <div class="mb-3">
+                    <label class="form-label" for="days">Delete snapshots older than (days)</label>
+                    <input type="number" id="days" name="days" class="form-control" value="30" min="1">
+                </div>
+                <button class="btn btn-outline-danger">Delete Older Than X Days</button>
+            </form>
         </div>
-    </form>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="h5 mb-0">Delete Empty Snapshots</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cleanup_empty">
+                <button class="btn btn-outline-danger">Delete Snapshots With No Users</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="h5 mb-0">Delete Old Audit Log Entries</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="cleanup_audit">
+                <div class="mb-3">
+                    <label class="form-label" for="audit_cleanup_days">Delete audit log entries older than (days)</label>
+                    <input type="number" id="audit_cleanup_days" name="audit_days" class="form-control" value="90" min="1">
+                </div>
+                <button class="btn btn-outline-danger">Delete Older Than X Days</button>
+            </form>
+        </div>
+    </div>
 
     {% if result is not None %}
         <div class="alert alert-info">
@@ -58,7 +83,7 @@
         </div>
     {% endif %}
 
-    <a href="{% url 'discordvoice_snapshots:admin_console' %}" class="btn btn-secondary mt-3">
+    <a href="{% url 'discordvoice_snapshots:admin_console' %}" class="btn btn-outline-secondary">
         Back to Admin Console
     </a>
 </div>
